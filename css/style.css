@@ -1,0 +1,954 @@
+@charset "utf-8";
+/* CSS Document */
+
+#loadingtext {
+	text-align: center;
+	font-size: 1.5em;
+	color: #FFF;
+}
+
+#test {
+	text-align:center;
+	font-size:1em;
+	}
+	
+#test2 {
+	text-align:center;
+	font-size:1em;
+	}
+#test3 {
+	text-align:center;
+	font-size:1em;
+	}
+#slider 
+{
+	float: left;
+	height: 64px;
+	width: 960px;
+}
+
+
+
+#buttonEmpty
+{
+	height: 64px;
+	width: 64px;
+	position: absolute;
+	left:0;
+	background-image: url(../icons/empty.png);
+	cursor: pointer;
+}
+#buttonDefault1
+{
+	height: 64px;
+	width: 64px;
+	position: absolute;
+	left:70;
+	background-image: url(../icons/default1.png);
+	cursor: pointer;
+}
+#buttonDefault2
+{
+	height: 64px;
+	width: 64px;
+	position: absolute;
+	left:140;
+	background-image: url(../icons/default2.png);
+	cursor: pointer;
+}
+#buttonOutput
+{
+	height: 64px;
+	width: 64px;
+	position: absolute;
+	left:0;
+	background-image: url(../icons/arrow-down.png);
+    cursor: pointer;
+}
+#buttonInput
+{
+	height: 64px;
+	width: 64px;
+	position: absolute;
+	left:0;
+	background-image: url(../icons/arrow-up.png);
+    cursor: pointer;
+}
+#thingsinformation 
+{
+	float: left;
+	height: 400px;
+	width: 180px;
+	margin: 0px;
+	background-image: url(../icons/information.png);
+    opacity:0;
+}
+
+#thingsinformationText
+{
+	float: left;
+	height: 200px;
+	width: 135px;
+	margin: 0px;
+    opacity:0;
+}
+
+#help
+{
+	height: 64px;
+	width: 64px;
+	position: absolute;
+	left:0;
+	background-image: url(../icons/arrow-question.png);
+    cursor: pointer;
+}
+
+
+
+#modelMenu 
+{
+	display: block;
+	background-color: #FFF;
+	float: left;
+	margin: 0px;
+	height: 64px;
+	width: auto;
+	padding: 0px;
+	border: 2px solid #000;
+}
+#modelMenu_1
+{
+	display: block;
+	background-color: #FFF;
+	float: left;
+	margin: 0px;
+	height: 64px;
+	width: auto;
+	padding: 0px;
+	border: 2px solid #000;
+}
+#modelMenu_2
+{
+	display: block;
+	background-color: #FFF;
+	float: left;
+	margin: 0px;
+	height: 64px;
+	width: auto;
+	padding: 0px;
+	border: 2px solid #000;
+}
+#modelMenu_3
+{
+	display: block;
+	background-color: #FFF;
+	float: left;
+	margin: 0px;
+	height: 64px;
+	width: auto;
+	padding: 0px;
+	border: 2px solid #000;
+}
+#modelMenu_4
+{
+	display: block;
+	background-color: #FFF;
+	float: left;
+	margin: 0px;
+	height: 64px;
+	width: auto;
+	padding: 0px;
+	border: 2px solid #000;
+}
+#modelMenu_5
+{
+	display: block;
+	background-color: #FFF;
+	float: left;
+	margin: 0px;
+	height: 64px;
+	width: auto;
+	padding: 0px;
+	border: 2px solid #000;
+}
+#modelMenu_6
+{
+	display: block;
+	background-color: #FFF;
+	float: left;
+	margin: 0px;
+	height: 64px;
+	width: auto;
+	padding: 0px;
+	border: 2px solid #000;
+}
+#modelMenu_7
+{
+	display: block;
+	background-color: #FFF;
+	float: left;
+	margin: 0px;
+	height: 64px;
+	width: auto;
+	padding: 0px;
+	border: 2px solid #000;
+}
+#modelMenu_8
+{
+	display: block;
+	background-color: #FFF;
+	float: left;
+	margin: 0px;
+	height: 64px;
+	width: auto;
+	padding: 0px;
+	border: 2px solid #000;
+}
+#modelMenu_9
+{
+	display: block;
+	background-color: #FFF;
+	float: left;
+	margin: 0px;
+	height: 64px;
+	width: auto;
+	padding: 0px;
+	border: 2px solid #000;
+}
+#modelMenu_10
+{
+	display: block;
+	background-color: #FFF;
+	float: left;
+	margin: 0px;
+	height: 64px;
+	width: auto;
+	padding: 0px;
+	border: 2px solid #000;
+}
+#modelMenu_11
+{
+	display: block;
+	background-color: #FFF;
+	float: left;
+	margin: 0px;
+	height: 64px;
+	width: auto;
+	padding: 0px;
+	border: 2px solid #000;
+}
+#modelMenu_12
+{
+	display: block;
+	background-color: #FFF;
+	float: left;
+	margin: 0px;
+	height: 64px;
+	width: auto;
+	padding: 0px;
+	border: 2px solid #000;
+}
+
+.model 
+{
+	
+	display: block;
+	float: left;
+	height: 64px;
+	width: 64px;
+	cursor: pointer;
+}
+
+
+#model_1
+{
+	background-image:url(../icons/TV/TV.jpg);	
+}
+#model_2
+{
+	background-image:url(../icons/computer/computer.jpg);	
+}
+#model_3
+{
+	background-image:url(../icons/Airconditioning/Airconditioning.jpg);	
+}
+#model_4
+{
+	background-image:url(../icons/cabinet/cabinet.jpg);	
+}
+#model_5
+{
+	background-image:url(../icons/bed/bed.jpg);	
+}
+#model_6
+{
+	background-image:url(../icons/desk/desk.jpg);	
+}
+#model_7
+{
+	background-image:url(../icons/sofa/sofa.jpg);	
+}
+#model_8
+{
+	background-image:url(../icons/chair/chair.jpg);	
+}
+#model_9
+{
+	background-image:url(../icons/lamp/lamp.jpg);	
+}
+#model_10
+{
+	background-image:url(../icons/Decorations/Decorations.jpg);	
+}
+#model_11
+{
+	background-image:url(../icons/frame/frame.jpg);	
+}
+#model_12
+{
+	background-image:url(../icons/others/others.jpg);	
+}
+
+#model_1_1
+{
+	background-image:url(../icons/TV/TV1.jpg);	
+}
+#model_1_2
+{
+	background-image:url(../icons/none.png);	
+}
+
+#model_1_3
+{
+	background-image:url(../icons/none.png);
+	
+}
+
+#model_2_1
+{
+	background-image:url(../icons/computer/computer1.jpg);	
+}
+#model_2_2
+{
+	background-image:url(../icons/computer/computer2.jpg);	
+}
+#model_2_3
+{
+	background-image:url(../icons/none.png);
+}
+#model_3_1
+{
+	background-image:url(../icons/Airconditioning/Airconditioning1.jpg);	
+}
+#model_3_2
+{
+	background-image:url(../icons/Airconditioning/Airconditioning2.jpg);	
+}
+#model_3_3
+{
+	background-image:url(../icons/Airconditioning/Airconditioning3.jpg);	
+}
+#model_4_1
+{
+	background-image:url(../icons/cabinet/cabinet1.jpg);	
+}
+#model_4_2
+{
+	background-image:url(../icons/cabinet/cabinet2.jpg);	
+}
+#model_4_3
+{
+	background-image:url(../icons/cabinet/cabinet3.jpg);	
+}
+#model_4_4
+{
+	background-image:url(../icons/cabinet/cabinet4.jpg);	
+}
+#model_4_5
+{
+	background-image:url(../icons/cabinet/cabinet5.jpg);	
+}
+#model_4_6
+{
+	background-image:url(../icons/cabinet/cabinet6.jpg);	
+}
+#model_5_1
+{
+	background-image:url(../icons/bed/bed1.jpg);	
+}
+#model_5_2
+{
+	background-image:url(../icons/bed/bed2.jpg);	
+}
+#model_5_3
+{
+	background-image:url(../icons/none.png);	
+}
+#model_6_1
+{
+	background-image:url(../icons/desk/desk1.jpg);	
+}
+#model_6_2
+{
+	background-image:url(../icons/desk/desk2.jpg);	
+}
+#model_6_3
+{
+	background-image:url(../icons/desk/desk3.jpg);	
+}
+#model_6_4
+{
+	background-image:url(../icons/desk/desk4.jpg);	
+}
+#model_6_5
+{
+	background-image:url(../icons/desk/desk5.jpg);	
+}
+#model_7_1
+{
+	background-image:url(../icons/sofa/sofa1.jpg);	
+}
+#model_7_2
+{
+	background-image:url(../icons/sofa/sofa2.jpg);	
+}
+#model_7_3
+{
+	background-image:url(../icons/sofa/sofa3.jpg);	
+}
+#model_8_1
+{
+	background-image:url(../icons/chair/chair1.jpg);	
+}
+#model_8_2
+{
+	background-image:url(../icons/chair/chair2.jpg);	
+}
+#model_8_3
+{
+	background-image:url(../icons/chair/chair3.jpg);	
+}
+#model_9_1
+{
+	background-image:url(../icons/lamp/lamp1.jpg);	
+}
+#model_9_2
+{
+	background-image:url(../icons/lamp/lamp2.jpg);	
+}
+#model_9_3
+{
+	background-image:url(../icons/none.png);	
+}
+#model_10_1
+{
+	background-image:url(../icons/Decorations/Decorations1.jpg);	
+}
+
+#model_10_2
+{
+	background-image:url(../icons/Decorations/Decorations2.jpg);	
+}
+
+#model_10_3
+{
+	background-image:url(../icons/Decorations/Decorations3.jpg);	
+}
+
+#model_10_4
+{
+	background-image:url(../icons/Decorations/Decorations4.jpg);	
+}
+
+#model_10_5
+{
+	background-image:url(../icons/Decorations/Decorations5.jpg);	
+}
+#model_11_1
+{
+	background-image:url(../icons/frame/frame1.jpg);	
+}
+#model_11_2
+{
+	background-image:url(../icons/none.png);
+}
+#model_11_3
+{
+	background-image:url(../icons/none.png);	
+}
+#model_12_1
+{
+	background-image:url(../icons/others/others1.jpg);	
+}
+#model_12_2
+{
+	background-image:url(../icons/others/others2.jpg);	
+}
+#model_12_3
+{
+	background-image:url(../icons/others/others3.jpg);	
+}
+#model_12_4
+{
+	background-image:url(../icons/others/others4.jpg);	
+}
+#model_12_5
+{
+	background-image:url(../icons/others/others5.jpg);	
+}
+#model_12_6
+{
+	background-image:url(../icons/others/others6.jpg);	
+}
+
+#textureMenu_1
+{
+	display: block;
+	background-color: #FFF;
+	float: left;
+	margin: 0px;
+	height: 64px;
+	width: auto;
+	padding: 0px;
+	border: 2px solid #000;
+}
+#textureMenu_2
+{
+	display: block;
+	background-color: #FFF;
+	float: left;
+	margin: 0px;
+	height: 64px;
+	width: auto;
+	padding: 0px;
+	border: 2px solid #000;
+}
+#textureMenu_3
+{
+	display: block;
+	background-color: #FFF;
+	float: left;
+	margin: 0px;
+	height: 64px;
+	width: auto;
+	padding: 0px;
+	border: 2px solid #000;
+}
+#textureMenu_4
+{
+	display: block;
+	background-color: #FFF;
+	float: left;
+	margin: 0px;
+	height: 64px;
+	width: auto;
+	padding: 0px;
+	border: 2px solid #000;
+}
+#textureMenu_5
+{
+	display: block;
+	background-color: #FFF;
+	float: left;
+	margin: 0px;
+	height: 64px;
+	width: auto;
+	padding: 0px;
+	border: 2px solid #000;
+}
+#textureMenu_6
+{
+	display: block;
+	background-color: #FFF;
+	float: left;
+	margin: 0px;
+	height: 64px;
+	width: auto;
+	padding: 0px;
+	border: 2px solid #000;
+}
+#textureMenu_7
+{
+	display: block;
+	background-color: #FFF;
+	float: left;
+	margin: 0px;
+	height: 64px;
+	width: auto;
+	padding: 0px;
+	border: 2px solid #000;
+}
+#textureMenu_8
+{
+	display: block;
+	background-color: #FFF;
+	float: left;
+	margin: 0px;
+	height: 64px;
+	width: auto;
+	padding: 0px;
+	border: 2px solid #000;
+}
+#ceilingtextureMenu
+{
+	display: block;
+	background-color: #FFF;
+	float: left;
+	margin: 0px;
+	height: 64px;
+	width: auto;
+	padding: 0px;
+	border: 2px solid #000;
+}
+#walltextureMenu
+{
+	display: block;
+	background-color: #FFF;
+	float: left;
+	margin: 0px;
+	height: 64px;
+	width: auto;
+	padding: 0px;
+	border: 2px solid #000;
+}
+#floortextureMenu
+{
+	display: block;
+	background-color: #FFF;
+	float: left;
+	margin: 0px;
+	height: 64px;
+	width: auto;
+	padding: 0px;
+	border: 2px solid #000;
+}
+
+.texture 
+{
+
+	display: block;
+	float: left;
+	height: 64px;
+	width: 64px;
+	cursor: pointer;
+}
+#ceilingtexture_1
+{
+	background-image:url(../icons/texture/ceiling/ceiling0.jpg);
+}
+#ceilingtexture_2
+{
+	background-image:url(../icons/texture/ceiling/ceiling1.jpg);
+}
+#ceilingtexture_3
+{
+	background-image:url(../icons/texture/ceiling/ceiling2.jpg);
+}
+#ceilingtexture_4
+{
+	background-image:url(../icons/texture/ceiling/ceiling3.jpg);
+}
+#ceilingtexture_5
+{
+	background-image:url(../icons/texture/ceiling/ceiling4.jpg);
+}
+#ceilingtexture_6
+{
+	background-image:url(../icons/texture/ceiling/ceiling5.jpg);
+}
+#ceilingtexture_7
+{
+	background-image:url(../icons/texture/ceiling/ceiling6.jpg);
+}
+#ceilingtexture_8
+{
+	background-image:url(../icons/texture/ceiling/ceiling7.jpg);
+}
+#ceilingtexture_9
+{
+	background-image:url(../icons/texture/ceiling/ceiling8.jpg);
+}
+#ceilingtexture_10
+{
+	background-image:url(../icons/texture/ceiling/ceiling9.jpg);
+}
+#ceilingtexture_11
+{
+	background-image:url(../icons/texture/ceiling/ceiling10.jpg);
+}
+#ceilingtexture_12
+{
+	background-image:url(../icons/texture/ceiling/ceiling11.jpg);
+}
+
+#walltexture_1
+{
+	background-image:url(../icons/texture/wall/wall0.jpg);
+}
+#walltexture_2
+{
+	background-image:url(../icons/texture/wall/wall1.jpg);
+}
+#walltexture_3
+{
+	background-image:url(../icons/texture/wall/wall2.jpg);
+}
+#walltexture_4
+{
+	background-image:url(../icons/texture/wall/wall3.jpg);
+}
+#walltexture_5
+{
+	background-image:url(../icons/texture/wall/wall4.jpg);
+}
+#walltexture_6
+{
+	background-image:url(../icons/texture/wall/wall5.jpg);
+}
+#walltexture_7
+{
+	background-image:url(../icons/texture/wall/wall6.jpg);
+}
+#walltexture_8
+{
+	background-image:url(../icons/texture/wall/wall7.jpg);
+}
+#walltexture_9
+{
+	background-image:url(../icons/texture/wall/wall8.jpg);
+}
+#walltexture_10
+{
+	background-image:url(../icons/texture/wall/wall9.jpg);
+}
+
+#floortexture_1
+{
+	background-image:url(../icons/texture/floor/floor0.jpg);
+}
+#floortexture_2
+{
+	background-image:url(../icons/texture/floor/floor1.jpg);
+}
+#floortexture_3
+{
+	background-image:url(../icons/texture/floor/floor2.jpg);
+}
+#floortexture_4
+{
+	background-image:url(../icons/texture/floor/floor3.jpg);
+}
+#floortexture_5
+{
+	background-image:url(../icons/texture/floor/floor4.jpg);
+}
+#floortexture_6
+{
+	background-image:url(../icons/texture/floor/floor5.jpg);
+}
+#floortexture_7
+{
+	background-image:url(../icons/texture/floor/floor6.jpg);
+}
+#floortexture_8
+{
+	background-image:url(../icons/texture/floor/floor7.jpg);
+}
+#floortexture_9
+{
+	background-image:url(../icons/texture/floor/floor8.jpg);
+}
+#floortexture_10
+{
+	background-image:url(../icons/texture/floor/floor9.jpg);
+}
+
+#texture_1_0
+{
+	background-image:url(../icons/texture/cabinet/cabinet0.jpg);
+}
+#texture_1_1
+{
+	background-image:url(../icons/texture/cabinet/cabinet1.jpg);
+}
+#texture_1_2
+{
+	background-image:url(../icons/texture/cabinet/cabinet2.jpg);
+}
+#texture_1_3
+{
+	background-image:url(../icons/texture/cabinet/cabinet3.jpg);
+}
+#texture_1_4
+{
+	background-image:url(../icons/texture/cabinet/cabinet4.jpg);
+}
+#texture_1_5
+{
+	background-image:url(../icons/texture/cabinet/cabinet5.jpg);
+}
+#texture_2_0
+{
+	background-image:url(../icons/texture/bed/bed0.jpg);
+}
+#texture_2_1
+{
+	background-image:url(../icons/none.png);
+}
+#texture_2_2
+{
+	background-image:url(../icons/none.png);
+}
+#texture_3_0
+{
+	background-image:url(../icons/texture/table/table0.jpg);
+}
+#texture_3_1
+{
+	background-image:url(../icons/texture/table/table1.jpg);
+}
+#texture_3_2
+{
+	background-image:url(../icons/texture/table/table2.jpg);
+}
+#texture_3_3
+{
+	background-image:url(../icons/texture/table/table3.jpg);
+}
+#texture_3_4
+{
+	background-image:url(../icons/texture/table/table4.jpg);
+}
+#texture_3_5
+{
+	background-image:url(../icons/texture/table/table5.jpg);
+}
+#texture_4_0
+{
+	background-image:url(../icons/texture/sofa/sofa0.jpg);
+}
+#texture_4_1
+{
+	background-image:url(../icons/texture/sofa/sofa1.jpg);
+}
+#texture_4_2
+{
+	background-image:url(../icons/texture/sofa/sofa2.jpg);
+}
+#texture_4_3
+{
+	background-image:url(../icons/texture/sofa/sofa3.jpg);
+}
+#texture_4_4
+{
+	background-image:url(../icons/texture/sofa/sofa4.jpg);
+}
+#texture_5_0
+{
+	background-image:url(../icons/texture/chair/chair0.jpg);
+}
+#texture_5_1
+{
+	background-image:url(../icons/texture/chair/chair1.jpg);
+}
+#texture_5_2
+{
+	background-image:url(../icons/texture/chair/chair2.jpg);
+}
+#texture_5_3
+{
+	background-image:url(../icons/texture/chair/chair3.jpg);
+}
+#texture_5_4
+{
+	background-image:url(../icons/texture/chair/chair4.jpg);
+}
+#texture_6_0
+{
+	background-image:url(../icons/texture/lamp/lamp0.jpg);
+}
+#texture_6_1
+{
+	background-image:url(../icons/texture/lamp/lamp1.jpg);
+}
+#texture_6_2
+{
+	background-image:url(../icons/texture/lamp/lamp2.jpg);
+}
+#texture_7_0
+{
+	background-image:url(../icons/texture/Decorations/Decorations0.jpg);
+}
+#texture_7_1
+{
+	background-image:url(../icons/texture/Decorations/Decorations1.jpg);
+}
+#texture_7_2
+{
+	background-image:url(../icons/texture/Decorations/Decorations2.jpg);
+}
+#texture_7_3
+{
+	background-image:url(../icons/texture/Decorations/Decorations3.jpg);
+}
+#texture_7_4
+{
+	background-image:url(../icons/texture/Decorations/Decorations4.jpg);
+}
+#texture_8_0
+{
+	background-image:url(../icons/texture/frame/frame0.jpg);
+}
+#texture_8_1
+{
+	background-image:url(../icons/texture/frame/frame1.jpg);
+}
+#texture_8_2
+{
+	background-image:url(../icons/texture/frame/frame2.jpg);
+}
+#texture_8_3
+{
+	background-image:url(../icons/texture/frame/frame3.jpg);
+}
+#texture_8_4
+{
+	background-image:url(../icons/texture/frame/frame4.jpg);
+}
+
+
+
+
+
+
+
+
+ul#loadbar {
+	list-style:none;
+	width:330px;
+	margin:0 auto;
+	padding-left:0px;
+	padding-top:25px;
+	padding-bottom:75px;
+}
+ul#loadbar li {
+	float:left;
+	position:relative;
+	width:30px;
+	height:60px;
+	margin-left:1px;
+	border-left:1px solid #111; border-top:1px solid #111; border-right:1px solid #333; border-bottom:1px solid #333; 
+	background:#000;
+}
+
+
+.bar {
+	background-color:#2187e7;  
+	background-image: -moz-linear-gradient(45deg, #2187e7 25%, #a0eaff); 
+	background-image: -webkit-linear-gradient(45deg, #2187e7 25%, #a0eaff);
+	width:30px;
+	height:60px;
+	opacity:0;
+
+}
+

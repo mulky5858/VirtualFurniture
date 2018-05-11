@@ -1,0 +1,83 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>欢迎使用虚拟家具系统</title>
+<link rel="stylesheet" href="css/animate.min.css" type="text/css"/>
+<script type="text/javascript" src="js/Library/jquery-1.8.0.min.js"></script> 
+
+<script type="text/javascript">
+
+function run(){
+bro= "浏览器版本为: ";
+if($.browser.chrome)       document.getElementById("BrowserVersion").textContent = bro + "Chrome " + $.browser.version;
+if($.browser.mozilla)      document.getElementById("BrowserVersion").textContent = bro + "Firefox " + $.browser.version;
+if($.browser.msie)         document.getElementById("BrowserVersion").innerText = bro + "Microsoft Internet Explorer " + $.browser.version;
+if($.browser.safari)       document.getElementById("BrowserVersion").textContent = bro + "Safari " + $.browser.version;
+if($.browser.opera)        document.getElementById("BrowserVersion").textContent = bro + "Opera " + $.browser.version;
+
+var img = new Image();
+img.src = "img/background.jpg";
+
+
+}
+
+
+function ButtonEffect(id,move)
+{
+
+$('#'+id+'').removeClass().addClass('animated '+move+'');
+var wait = window.setTimeout( function(){
+$('#'+id+'').removeClass()},
+1300
+);
+	
+	
+}
+
+
+</script>
+
+
+
+
+
+</head>
+
+<body onLoad ="run();">
+
+
+<div align="center">
+
+  <p>&nbsp;</p>
+  <table width="336" border="0">
+    <tr>
+      <td width="326"><div align="center"><img src="others/LOGO.jpg" width="700" height="300"></div></td>
+    </tr>
+    <tr>
+      <td><hr></td>
+    </tr>
+    <tr>
+      <td><div id="Begin" align="center" style="font-size:25px" onMouseMove="ButtonEffect(this.id,'flash');" ><a href="webgl.html">开始使用</a></div></td>
+    </tr>
+    <tr>
+      <td><div align="center" id="BrowserVersion">浏览器信息未成功取得，可能无法运行。
+          </div>
+      </td>
+    </tr>
+    <tr>
+      <td><div align="center">
+        <p>如果你的浏览器不支持webGL请下载<a href="others/谷歌浏览器 dev_23.0.1243.2.exe">chrome dev_23</a></p>
+        <p>使用前请关闭不必要的应用程序，以腾出更多的内存空间。</p>
+      </div></td>
+    </tr>
+    <tr>
+      <td><div align="center">
+        <p>版本信息：Beta 2.5 <!-- #BeginDate format:Ch1m -->12/10/30   15:30<!-- #EndDate --></p>
+        <hr>
+        </div>
+      </td>
+    </tr>
+  </table>
+</div>
+</body>
+</html>

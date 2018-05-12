@@ -1,7 +1,6 @@
-song=Array();
+song = Array()
 
-function playmusic(num)
-{
- song[num].play(); 
- song[num].loop=true;
+function playmusic (num) {
+  song[num].play()
+  song[num].loop = true
 }

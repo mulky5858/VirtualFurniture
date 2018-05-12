@@ -1,479 +1,469 @@
 <html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>3D虚拟家具系统</title>
-   <script type="text/javascript" src="js/source/base.js"></script>
-   <script type="text/javascript">
-   var keyevent=1;
-   //启用键盘
-   var showtesttext=0;
-   // 显示测试信息
-   var MaxNumberOfObjects = 50;
-	//最大物体数量
-   var NumberOfObjects = 39;
-   //当前物体数量（请及时修改）
-   var showRoomName=0;
-   //是否显示房间名称
-   var showMap=1;
-   //是否显示结构设计
-   var showItemSelectionBox=0;
-   //是否显示物品选择框
-   var showTV =Array();
-   //电视机是否打开
-   var TVchannel=Array();
-   //频道贴图数组
-   var numofTVchannel=2;
-   //频道数量
-   var PicturesOfChannel=Array();
-   //每个频道图片的数量
-   PicturesOfChannel[1]=830;
-   PicturesOfChannel[2]=814;
-   PicturesOfChannel[3]=0;
-   var numofPictures=0;
-   //所有频道的图片总数
-   
-  for (var k=1; k<=numofTVchannel;k++)
-	{
-       
-	   numofPictures+=PicturesOfChannel[k];
-	}
-	
-	
-   var isplaymusic=0;
-   //音乐是否播放
-   var bgm=rand(0,2);
-   //背景音乐随即0-2
-   var ControlMode=0;
-   //控制模式
-   //0为点选模式
-   //1为拖动模式
-   var showprompt=1;
-   //显示提示
-   var loadingtextureend=1;
-   //贴图载入完成后，只做一次的事情
-   var loadingend=1;
-   //载入完成后，只做一次的事情
-
-   var translateCelingTexture = 0;
-   var translateWallTexture = 0;
-   var translateFloorTexture = 0;
-   var translateDoorTexture = 0;
-   var pointlight = [0, 2.3, 0];
-   //var pointlight2 = [0, 2.4, 0];
-   // pointlight为初始点光源的坐标，这个坐标请以实际为值（与其他不同）
-   var newpointlight = [0,0,0];
-   
-
-   
-   
-   
-   var lighting = 1;
-   //是否开启灯光
-   var brightness = 0.8;
-   //点光源亮度
-
-	var mvThings = Array();
-	var mvThings_2 = Array();
-	//每个物体的矩阵
-	var numThings = Array();
-	//记录每个物体的数量
-    var mouseDown = Array();
-	//记录每个物体是否被点击
-    var translateMatrix = Array();
-	//记录每个物体的偏移矩阵
-	var translateVector = Array();
-	//记录每个物体的位置	
-	var translateTexture = Array();
-	//记录每个物体的贴图
-	var translateScale =Array();
-	//记录每个物的放大倍数
-	var rotateAngle = Array();
-	//记录每个物体旋转的角度
-	var flagThings =Array();
-	//记录每个物体是否显示
-	
-	var viewstyle=1;
-	//if (viewstyle) changeView();
-	
-	var pitch;
-    var pitchRate = 0;
-
-    var yaw;
-    var yawRate = 0;
-    var yawRate2 = 0;
-	var roomheight= 3 ;
-	var height = 1.75;
-	// 1.75 为身高
-	var viewheight;
-	
-
-
-	
-	   
-	
-    var xPos;
-    var yPos;
-    var zPos;
-    //以上3个数值为初始位置
-	
-	
-	var yaw_2=0;
-	var pitch_2=0;
-	
-	var xPos_2=0;
-    var yPos_2=0.5;
-    var zPos_2=3;
-	
-	var gl2_things=-1;
-	var gl2_rotateAngle=0;
-	var gl2_translateTexture=0;
-	
-    var speed = 0;
-	//前进速度		
-    var speed2 = 0;
-	//平移速度
-	
-	var jumping =0;
-	//模拟跳跃
-  </script> 
-
- 
-  <link rel="stylesheet" href="css/style.css" type="text/css"/>
-  <link rel="stylesheet" href="css/animate.min.css" type="text/css"/>
-  <script type="text/javascript" src="js/Library/glMatrix-0.9.5.min.js"></script> 
-  <script type="text/javascript" src="js/Library/webgl-utils.js"></script>
-  <script type="text/javascript" src="js/Library/jquery-1.8.0.min.js"></script>
-  <script type="text/javascript" src="js/Library/jquery.contextmenu.r2.js"></script>
-  
-  <script type="text/javascript" src="js/source/logon.js"></script>
-  <script type="text/javascript" src="js/source/register.js"></script>
-  <script type="text/javascript" src="js/source/InputAndOutputStreams.js"></script>
-  <script type="text/javascript" src="js/source/shader.js"></script>
-  <script type="text/javascript" src="js/source/Matrix.js"></script>
-  <script type="text/javascript" src="js/source/texture.js"></script> 
-  <script type="text/javascript" src="js/source/Loadroom.js"></script>
-  <script type="text/javascript" src="js/source/Loadthings.js"></script>
-  <script type="text/javascript" src="js/source/cancel.js"></script>
-  <script type="text/javascript" src="js/source/RightKeyMenu.js"></script>
-  <script type="text/javascript" src="js/source/control.js"></script>
-  <script type="text/javascript" src="js/source/testmode.js"></script>
-  <script type="text/javascript" src="js/source/drawSceneOnTVScreen.js"></script>
-  <script type="text/javascript" src="js/source/drawroom.js"></script>
-  <script type="text/javascript" src="js/source/draw.js"></script>
-  <script type="text/javascript" src="js/source/drawthings.js"></script>
-  <script type="text/javascript" src="js/source/collisionDetection.js"></script>
-  <script type="text/javascript" src="js/source/picking.js"></script>
-  <script type="text/javascript" src="js/source/buttonevent.js"></script>
-  <script type="text/javascript" src="js/source/sliderbar.js"></script>
-  <script type="text/javascript" src="js/source/animate.js"></script>
-  <script type="text/javascript" src="js/source/frame.js"></script>
-  <script type="text/javascript" src="js/source/view.js"></script>
-  <script type="text/javascript" src="js/source/music.js"></script>
-  <script type="text/javascript" src="js/source/information.js"></script>
-  <script type="text/javascript" src="js/source/prompt.js"></script>
-  <script type="text/javascript" src="js/source/roomname.js"></script>
-  <script type="text/javascript" src="js/source/map.js"></script>
-  <script type="text/javascript" src="js/source/compass.js"></script>
-  <script type="text/javascript" src="js/source/ItemSelectionBox.js"></script>
-  <script type="text/javascript" src="js/source/ThingsMovement.js"></script>
-  
-  <script id="per-vertex-lighting-fs" type="x-shader/x-fragment">
-			precision mediump float;
-			
-			varying vec2 vTextureCoord;
-			varying vec3 vLightWeighting;
-			
-			uniform sampler2D uSampler;
-
-			void main(void) 
-			{
-				vec4 textureColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
-				gl_FragColor = vec4(textureColor.rgb * vLightWeighting, textureColor.a);
-			}
-  </script>
-  <script id="per-vertex-lighting-vs" type="x-shader/x-vertex">
-			attribute vec3 aVertexPosition;
-			attribute vec3 aVertexNormal;
-			attribute vec2 aTextureCoord;
-
-			uniform mat4 uMVMatrix;
-			uniform mat4 uPMatrix;
-			uniform mat3 uNMatrix;
-			
-			uniform vec3 uAmbientColor;
-			uniform vec3 uLightingDirection;
-			uniform vec3 uDirectionalColor;
-			
-			uniform vec3 uPointLightingLocation;
-            uniform vec3 uPointLightingColor;
-			
-			uniform bool uUseLighting;
-			
-			varying vec2 vTextureCoord;
-			varying vec3 vLightWeighting;
-
-			void main(void) 
-			{    
-			    vec4 mvPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
-				gl_Position = uPMatrix * mvPosition;
-				vTextureCoord = aTextureCoord;
-				
-				if(!uUseLighting)
-				{
-					vLightWeighting = vec3(1, 1, 1);
-				}
-				else
-				{
-					vec3 lightDirection = normalize(uPointLightingLocation - mvPosition.xyz);
-
-                    vec3 transformedNormal = uNMatrix * aVertexNormal;
-                    float directionalLightWeighting = max(dot(transformedNormal, lightDirection), 0.0);
-                    vLightWeighting = uAmbientColor + uPointLightingColor * directionalLightWeighting;	
-				}
-			}
-  </script>
-  
-  <script id="per-fragment-lighting-fs" type="x-shader/x-fragment">
-    precision mediump float;
-
-    varying vec2 vTextureCoord;
-    varying vec3 vTransformedNormal;
-    varying vec4 vPosition;
-
-    uniform bool uUseLighting;
-	uniform bool uUseTextures;
-   
-
-    uniform vec3 uAmbientColor;
-
-    uniform vec3 uPointLightingLocation;
-    uniform vec3 uPointLightingColor;
-
-
-    uniform sampler2D uSampler;
-
-
-   void main(void) {
-        vec3 lightWeighting;
-        if (!uUseLighting) {
-            lightWeighting = vec3(1.0, 1.0, 1.0);
-        } else {
-            vec3 lightDirection = normalize(uPointLightingLocation - vPosition.xyz);
-            
-            float directionalLightWeighting = max(dot(normalize(vTransformedNormal), lightDirection), 0.0);
-            lightWeighting = uAmbientColor + uPointLightingColor * directionalLightWeighting;
-        }
-
-        vec4 fragmentColor;
-        if (uUseTextures) {
-        fragmentColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
-        } else {
-            fragmentColor = vec4(1.0, 1.0, 1.0, 1.0);
-               }
-        gl_FragColor = vec4(fragmentColor.rgb * lightWeighting, fragmentColor.a);
-    }
-	
-	
-
-</script>
-
-<script id="per-fragment-lighting-vs" type="x-shader/x-vertex">
-    attribute vec3 aVertexPosition;
-    attribute vec3 aVertexNormal;
-    attribute vec2 aTextureCoord;
-
-    uniform mat4 uMVMatrix;
-    uniform mat4 uPMatrix;
-    uniform mat3 uNMatrix;
-
-    varying vec2 vTextureCoord;
-    varying vec3 vTransformedNormal;
-    varying vec4 vPosition;
-
-
-    void main(void) {
-        vPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
-        gl_Position = uPMatrix * vPosition;
-        vTextureCoord = aTextureCoord;
-        vTransformedNormal = uNMatrix * aVertexNormal;
-    }
-</script>
-  
-  
-  
-  
-  
-  
-  
-  <script type="text/javascript">
-
-    var gl;
-	var gl2;
-
-    function initGL(canvas) {
-        try {
-            gl = canvas.getContext("experimental-webgl");
-            gl.viewportWidth = canvas.width;
-            gl.viewportHeight = canvas.height;
-        } catch (e) {
-        }
-        if (!gl) {
-            alert("无法加载webGL，请检查你的浏览器是否支持webGL。");
-        }
-    }
-	
-    function initGL2(canvas) {
-        try {
-            gl2 = canvas.getContext("experimental-webgl");
-            gl2.viewportWidth = canvas.width;
-            gl2.viewportHeight = canvas.height;
-        } catch (e) {
-        }
-        if (!gl2) {
-            alert("无法加载webGL，请检查你的浏览器是否支持webGL。");
-        }
-    }
-
-    
-
-   
-  function webGLStart() {
-	    
-
-		initmap();
-        var canvas = document.getElementById("view");
-		var canvas2 = document.getElementById("3dthings");	
-			
-        initialize();		
-        initGL(canvas);		
-		initGL2(canvas2);
-		
-		document.getElementById("loadingtext").textContent = "搭建着色器..";
-        initShaders(gl);
-		initShaders2(gl2);
-    	document.getElementById("loadingtext").textContent = "载入贴图..";
-		initTexture();  
-		
-		for (var k=1; k<=numofTVchannel;k++)
-		{
-        initBuffers(k);			
-       	initTextureFramebuffer(k);
-		}
-		
-
-		
-		//shaderProgram = perVertexProgram;
-		shaderProgram = perFragmentProgram;
-		shaderProgram2 = perVertexProgram2;
-		// 选择光照系统
-				
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.enable(gl.DEPTH_TEST);
-		
-		gl2.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl2.enable(gl2.DEPTH_TEST);
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>3D虚拟家具系统</title>
+        <script type="text/javascript" src="js/source/base.js"></script>
+        <script type="text/javascript">
+        var keyevent=1;
+        //启用键盘
+        var showtesttext=0;
+        // 显示测试信息
+        var MaxNumberOfObjects = 50;
+        //最大物体数量
+        var NumberOfObjects = 39;
+        //当前物体数量（请及时修改）
+        var showRoomName=0;
+        //是否显示房间名称
+        var showMap=1;
+        //是否显示结构设计
+        var showItemSelectionBox=0;
+        //是否显示物品选择框
+        var showTV =Array();
+        //电视机是否打开
+        var TVchannel=Array();
+        //频道贴图数组
+        var numofTVchannel=2;
+        //频道数量
+        var PicturesOfChannel=Array();
+        //每个频道图片的数量
+        PicturesOfChannel[1]=830;
+        PicturesOfChannel[2]=814;
+        PicturesOfChannel[3]=0;
+        var numofPictures=0;
+        //所有频道的图片总数
         
-		
-		document.onselectstart = new Function("return false");
-		//无法选择
-		//document.ondragstart = new Function("return false");
-		//无法拖动
-        document.onkeydown = handleKeyDown;
-        document.onkeyup = handleKeyUp;
-      	document.onmousemove = handleMouseMove;
-		canvas.onmousedown = handleMouseDown;
-		canvas.onmouseup = handleMouseUp;
-		canvas.onmousewheel = handleMouseWheel;
-		canvas.oncontextmenu = handleContextMenu;
-	
-		
-        tick();
-		
-    }
-  
-  </script>
+        for (var k=1; k<=numofTVchannel;k++)
+        {
+            
+            numofPictures+=PicturesOfChannel[k];
+        }
+        
+        
+        var isplaymusic=0;
+        //音乐是否播放
+        var bgm=rand(0,2);
+        //背景音乐随即0-2
+        var ControlMode=0;
+        //控制模式
+        //0为点选模式
+        //1为拖动模式
+        var showprompt=1;
+        //显示提示
+        var loadingtextureend=1;
+        //贴图载入完成后，只做一次的事情
+        var loadingend=1;
+        //载入完成后，只做一次的事情
+    
+        var translateCelingTexture = 0;
+        var translateWallTexture = 0;
+        var translateFloorTexture = 0;
+        var translateDoorTexture = 0;
+        var pointlight = [0, 2.3, 0];
+        //var pointlight2 = [0, 2.4, 0];
+        // pointlight为初始点光源的坐标，这个坐标请以实际为值（与其他不同）
+        var newpointlight = [0,0,0];
+        
+        var lighting = 1;
+        //是否开启灯光
+        var brightness = 0.8;
+        //点光源亮度
+    
+        var mvThings = Array();
+        var mvThings_2 = Array();
+        //每个物体的矩阵
+        var numThings = Array();
+        //记录每个物体的数量
+        var mouseDown = Array();
+        //记录每个物体是否被点击
+        var translateMatrix = Array();
+        //记录每个物体的偏移矩阵
+        var translateVector = Array();
+        //记录每个物体的位置	
+        var translateTexture = Array();
+        //记录每个物体的贴图
+        var translateScale =Array();
+        //记录每个物的放大倍数
+        var rotateAngle = Array();
+        //记录每个物体旋转的角度
+        var flagThings =Array();
+        //记录每个物体是否显示
+        
+        var viewstyle=1;
+        //if (viewstyle) changeView();
+        
+        var pitch;
+        var pitchRate = 0;
+    
+        var yaw;
+        var yawRate = 0;
+        var yawRate2 = 0;
+        var roomheight= 3 ;
+        var height = 1.75;
+        // 1.75 为身高
+        var viewheight;
+
+        var xPos;
+        var yPos;
+        var zPos;
+        //以上3个数值为初始位置
+        
+
+        var yaw_2=0;
+        var pitch_2=0;
+        
+        var xPos_2=0;
+        var yPos_2=0.5;
+        var zPos_2=3;
+        
+        var gl2_things=-1;
+        var gl2_rotateAngle=0;
+        var gl2_translateTexture=0;
+        
+        var speed = 0;
+        //前进速度		
+        var speed2 = 0;
+        //平移速度
+        
+        var jumping =0;
+        //模拟跳跃
+        </script> 
+    
+        
+        <link rel="stylesheet" href="css/style.css" type="text/css"/>
+        <link rel="stylesheet" href="css/animate.min.css" type="text/css"/>
+        <script type="text/javascript" src="js/Library/glMatrix-0.9.5.min.js"></script> 
+        <script type="text/javascript" src="js/Library/webgl-utils.js"></script>
+        <script type="text/javascript" src="js/Library/jquery-1.8.0.min.js"></script>
+        <script type="text/javascript" src="js/Library/jquery.contextmenu.r2.js"></script>
+    
+        <script type="text/javascript" src="js/source/InputAndOutputStreams.js"></script>
+        <script type="text/javascript" src="js/source/shader.js"></script>
+        <script type="text/javascript" src="js/source/Matrix.js"></script>
+        <script type="text/javascript" src="js/source/texture.js"></script> 
+        <script type="text/javascript" src="js/source/Loadroom.js"></script>
+        <script type="text/javascript" src="js/source/Loadthings.js"></script>
+        <script type="text/javascript" src="js/source/cancel.js"></script>
+        <script type="text/javascript" src="js/source/RightKeyMenu.js"></script>
+        <script type="text/javascript" src="js/source/control.js"></script>
+        <script type="text/javascript" src="js/source/testmode.js"></script>
+        <script type="text/javascript" src="js/source/drawSceneOnTVScreen.js"></script>
+        <script type="text/javascript" src="js/source/drawroom.js"></script>
+        <script type="text/javascript" src="js/source/draw.js"></script>
+        <script type="text/javascript" src="js/source/drawthings.js"></script>
+        <script type="text/javascript" src="js/source/collisionDetection.js"></script>
+        <script type="text/javascript" src="js/source/picking.js"></script>
+        <script type="text/javascript" src="js/source/buttonevent.js"></script>
+        <script type="text/javascript" src="js/source/sliderbar.js"></script>
+        <script type="text/javascript" src="js/source/animate.js"></script>
+        <script type="text/javascript" src="js/source/frame.js"></script>
+        <script type="text/javascript" src="js/source/view.js"></script>
+        <script type="text/javascript" src="js/source/music.js"></script>
+        <script type="text/javascript" src="js/source/information.js"></script>
+        <script type="text/javascript" src="js/source/prompt.js"></script>
+        <script type="text/javascript" src="js/source/roomname.js"></script>
+        <script type="text/javascript" src="js/source/map.js"></script>
+        <script type="text/javascript" src="js/source/compass.js"></script>
+        <script type="text/javascript" src="js/source/ItemSelectionBox.js"></script>
+        <script type="text/javascript" src="js/source/ThingsMovement.js"></script>
+        
+        <script id="per-vertex-lighting-fs" type="x-shader/x-fragment">
+                precision mediump float;
+                
+                varying vec2 vTextureCoord;
+                varying vec3 vLightWeighting;
+                
+                uniform sampler2D uSampler;
+    
+                void main(void) 
+                {
+                    vec4 textureColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+                    gl_FragColor = vec4(textureColor.rgb * vLightWeighting, textureColor.a);
+                }
+        </script>
+        <script id="per-vertex-lighting-vs" type="x-shader/x-vertex">
+                attribute vec3 aVertexPosition;
+                attribute vec3 aVertexNormal;
+                attribute vec2 aTextureCoord;
+    
+                uniform mat4 uMVMatrix;
+                uniform mat4 uPMatrix;
+                uniform mat3 uNMatrix;
+                
+                uniform vec3 uAmbientColor;
+                uniform vec3 uLightingDirection;
+                uniform vec3 uDirectionalColor;
+                
+                uniform vec3 uPointLightingLocation;
+                uniform vec3 uPointLightingColor;
+                
+                uniform bool uUseLighting;
+                
+                varying vec2 vTextureCoord;
+                varying vec3 vLightWeighting;
+    
+                void main(void) 
+                {    
+                    vec4 mvPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
+                    gl_Position = uPMatrix * mvPosition;
+                    vTextureCoord = aTextureCoord;
+                    
+                    if(!uUseLighting)
+                    {
+                        vLightWeighting = vec3(1, 1, 1);
+                    }
+                    else
+                    {
+                        vec3 lightDirection = normalize(uPointLightingLocation - mvPosition.xyz);
+    
+                        vec3 transformedNormal = uNMatrix * aVertexNormal;
+                        float directionalLightWeighting = max(dot(transformedNormal, lightDirection), 0.0);
+                        vLightWeighting = uAmbientColor + uPointLightingColor * directionalLightWeighting;	
+                    }
+                }
+        </script>
+        
+        <script id="per-fragment-lighting-fs" type="x-shader/x-fragment">
+            precision mediump float;
+        
+            varying vec2 vTextureCoord;
+            varying vec3 vTransformedNormal;
+            varying vec4 vPosition;
+        
+            uniform bool uUseLighting;
+            uniform bool uUseTextures;
+        
+        
+            uniform vec3 uAmbientColor;
+        
+            uniform vec3 uPointLightingLocation;
+            uniform vec3 uPointLightingColor;
+        
+        
+            uniform sampler2D uSampler;
+        
+        
+            void main(void) {
+                vec3 lightWeighting;
+                if (!uUseLighting) {
+                    lightWeighting = vec3(1.0, 1.0, 1.0);
+                } else {
+                    vec3 lightDirection = normalize(uPointLightingLocation - vPosition.xyz);
+                    
+                    float directionalLightWeighting = max(dot(normalize(vTransformedNormal), lightDirection), 0.0);
+                    lightWeighting = uAmbientColor + uPointLightingColor * directionalLightWeighting;
+                }
+        
+                vec4 fragmentColor;
+                if (uUseTextures) {
+                fragmentColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+                } else {
+                    fragmentColor = vec4(1.0, 1.0, 1.0, 1.0);
+                    }
+                gl_FragColor = vec4(fragmentColor.rgb * lightWeighting, fragmentColor.a);
+            }
+        </script>
+    
+        <script id="per-fragment-lighting-vs" type="x-shader/x-vertex">
+            attribute vec3 aVertexPosition;
+            attribute vec3 aVertexNormal;
+            attribute vec2 aTextureCoord;
+        
+            uniform mat4 uMVMatrix;
+            uniform mat4 uPMatrix;
+            uniform mat3 uNMatrix;
+        
+            varying vec2 vTextureCoord;
+            varying vec3 vTransformedNormal;
+            varying vec4 vPosition;
+        
+        
+            void main(void) {
+                vPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
+                gl_Position = uPMatrix * vPosition;
+                vTextureCoord = aTextureCoord;
+                vTransformedNormal = uNMatrix * aVertexNormal;
+            }
+        </script>
+        
+        
+        
+        
+        
+        
+        
+        <script type="text/javascript">
+        
+            var gl;
+            var gl2;
+        
+            function initGL(canvas) {
+                try {
+                    gl = canvas.getContext("experimental-webgl");
+                    gl.viewportWidth = canvas.width;
+                    gl.viewportHeight = canvas.height;
+                } catch (e) {
+                }
+                if (!gl) {
+                    alert("无法加载webGL，请检查你的浏览器是否支持webGL。");
+                }
+            }
+                
+            function initGL2(canvas) {
+                try {
+                    gl2 = canvas.getContext("experimental-webgl");
+                    gl2.viewportWidth = canvas.width;
+                    gl2.viewportHeight = canvas.height;
+                } catch (e) {
+                }
+                if (!gl2) {
+                    alert("无法加载webGL，请检查你的浏览器是否支持webGL。");
+                }
+            }
+    
+            
+        
+        
+            function webGLStart() {
+                
+        
+                initmap();
+                var canvas = document.getElementById("view");
+                var canvas2 = document.getElementById("3dthings");	
+                    
+                initialize();		
+                initGL(canvas);		
+                initGL2(canvas2);
+                
+                document.getElementById("loadingtext").textContent = "搭建着色器..";
+                initShaders(gl);
+                initShaders2(gl2);
+                document.getElementById("loadingtext").textContent = "载入贴图..";
+                initTexture();  
+                
+                for (var k=1; k<=numofTVchannel;k++)
+                {
+                initBuffers(k);			
+                initTextureFramebuffer(k);
+                }
+                
+        
+                
+                //shaderProgram = perVertexProgram;
+                shaderProgram = perFragmentProgram;
+                shaderProgram2 = perVertexProgram2;
+                // 选择光照系统
+                        
+                gl.clearColor(0.0, 0.0, 0.0, 1.0);
+                gl.enable(gl.DEPTH_TEST);
+                
+                gl2.clearColor(0.0, 0.0, 0.0, 1.0);
+                gl2.enable(gl2.DEPTH_TEST);
+                
+                
+                document.onselectstart = new Function("return false");
+                //无法选择
+                //document.ondragstart = new Function("return false");
+                //无法拖动
+                document.onkeydown = handleKeyDown;
+                document.onkeyup = handleKeyUp;
+                document.onmousemove = handleMouseMove;
+                canvas.onmousedown = handleMouseDown;
+                canvas.onmouseup = handleMouseUp;
+                canvas.onmousewheel = handleMouseWheel;
+                canvas.oncontextmenu = handleContextMenu;
+            
+                
+                tick();
+                
+            }
+        
+        </script>
+    </head>
+
+    <body onLoad="webGLStart();" onResize="refreshwebsite();" onUnload="" style="background-image:url(img/background.jpg);background-size:cover; ">
+
+        <div id="loadingtext">环境搭建中</div>
+
+        <div align="center">
+            <ul id="loadbar">
+                <li>
+                    <div id="layerFill1" class="bar"></div>
+                </li>
+                <li>
+                    <div id="layerFill2" class="bar"></div>
+                </li>
+                <li>
+                    <div id="layerFill3" class="bar"></div>
+                </li>
+                <li>
+                    <div id="layerFill4" class="bar"></div>
+                </li>
+                <li>
+                    <div id="layerFill5" class="bar"></div>
+                </li>
+                <li>
+                    <div id="layerFill6" class="bar"></div>
+                </li>
+                <li>
+                    <div id="layerFill7" class="bar"></div>
+                </li>
+                <li>
+                    <div id="layerFill8" class="bar"></div>
+                </li>
+                <li>
+                    <div id="layerFill9" class="bar"></div>
+                </li>
+                <li>
+                    <div id="layerFill10" class="bar"></div>
+                </li>
+            </ul>
+
+        </div>
 
 
 
-</head>
-
-<body onLoad="webGLStart();" onResize="refreshwebsite();" onUnload="" style="background-image:url(img/background.jpg);background-size:cover; ">
 
 
+        <div id="titlepicture" onClick="ButtonEffect(this.id,'swing');" style="position: absolute; background-image:url(icons/title.png); width:750; height:40;display: none;cursor: pointer;"></div>
+        <div id="buttonbar" style="position: absolute; top:55; background-image:url(icons/buttonbar.png); width:750; height:90;display: none"></div>
 
-<div id="loadingtext">环境搭建中</div>
+        <div>
 
-<div align="center">
-<ul id="loadbar">
-    <li>
-    <div id="layerFill1" class="bar"></div>
-    </li>
-    <li>
-    <div id="layerFill2" class="bar"></div>
-    </li>
-    <li>
-    <div id="layerFill3" class="bar"></div>
-    </li>
-    <li>
-    <div id="layerFill4" class="bar"></div>
-    </li>
-    <li>
-    <div id="layerFill5" class="bar"></div>
-    </li>
-    <li>
-    <div id="layerFill6" class="bar"></div>
-    </li>
-    <li>
-    <div id="layerFill7" class="bar"></div>
-    </li>
-    <li>
-    <div id="layerFill8" class="bar"></div>
-    </li>
-    <li>
-    <div id="layerFill9" class="bar"></div>
-    </li>
-    <li>
-    <div id="layerFill10" class="bar"></div>
-    </li>
-</ul>
+            <canvas id="view" style="position: absolute; top:150; border: none; display: none" width="750" height="450"></canvas>
 
-</div>
+        </div>
+        <div id="viewload" style="position: absolute; top:150; width:750; height:450; display:none;  background-color:#999; opacity:0.5">
+            <div align="center" style="padding-top:200px;">
+                处理中...
+            </div>
+        </div>
+        <div id="sliderbar" style="position: absolute; background-image:url(icons/sliderbar.png); width:240; height:590;display: none">
 
+            <div>
+                <canvas id="3dthings" onClick="ButtonEffect(this.id,'pulse');" style="position: absolute; top:20;left:20;background-color:#000; border: none; cursor: pointer;"
+                    width="200" height="200"></canvas>
+            </div>
 
-
-
-
-<div id="titlepicture" onClick="ButtonEffect(this.id,'swing');"  style="position: absolute; background-image:url(icons/title.png); width:750; height:40;display: none;cursor: pointer;"></div>
-<div id="buttonbar" style="position: absolute; top:55; background-image:url(icons/buttonbar.png); width:750; height:90;display: none"></div>
-
-<div>
-
-<canvas id="view" style="position: absolute; top:150; border: none; display: none" width="750" height="450"></canvas>
-
-</div>
-<div id="viewload" style="position: absolute; top:150; width:750; height:450; display:none;  background-color:#999; opacity:0.5">
-<div align="center" style="padding-top:200px;">
-处理中...
-</div>
-</div>
-<div id="sliderbar" style="position: absolute; background-image:url(icons/sliderbar.png); width:240; height:590;display: none">
-
-<div><canvas id="3dthings" onClick="ButtonEffect(this.id,'pulse');" style="position: absolute; top:20;left:20;background-color:#000; border: none; cursor: pointer;" width="200" height="200"></canvas></div>
-
-<div id="newThiings" onMouseOver="ButtonEffect(this.id,'tada');"  onClick="creatNewThings(gl2_things);" style="position: absolute; top:225;left:70; background-image:url(icons/newThiings.png); width:100; height:30;cursor: pointer;">
-</div> 
-<div id="compass" style=" position: absolute; left:52.5; top: 450 ;width:135; height:75; background-image:url(icons/compass/compass.png);cursor: pointer;">
-<div id="viewbutton" onClick="changeView()" style=" position: absolute; left:-20; top: 70 ;width:100; height:30; background-image:url(icons/view1.png); cursor: pointer;"></div>
-<div id="Viewgoup" onMouseDown="doViewgoup();" onMouseUp="undoViewgoup();" onMouseOver="onoverViewgoup();" onMouseOut="mouseout();" style=" position: absolute; top: 10 ; left:56.5; width:20; height:15;cursor: pointer;"></div>
-<div id="Viewgodown" onMouseDown="doViewgodown();" onMouseUp="undoViewgodown();" onMouseOver="onoverViewgodown();" onMouseOut="mouseout();" style=" position: absolute; top: 50 ; left:56.5; width:20; height:15;cursor: pointer;"></div>
-<div id="Viewgoleft" onMouseDown="doViewgoleft();" onMouseUp="undoViewgoleft();" onMouseOver="onoverViewgoleft();" onMouseOut="mouseout();" style=" position: absolute; top: 28 ; left:34.5; width:15; height:20;cursor: pointer;"></div>
-<div id="Viewgoright" onMouseDown="doViewgoright();" onMouseUp="undoViewgoright();" onMouseOver="onoverViewgoright();" onMouseOut="mouseout();" style=" position: absolute; top: 28 ; left:84.5; width:15; height:20;cursor: pointer;"></div>
-<div id="Viewturnleft" onMouseDown="doViewturnleft();" onMouseUp="undoViewturnleft();" onMouseOver="onoverViewturnleft();" onMouseOut="mouseout();" style=" position: absolute; top: 20 ; left:5; width:28; height:38;cursor: pointer;"></div>
-<div id="Viewturnright" onMouseDown="doViewturnright();" onMouseUp="undoViewturnright();" onMouseOver="onoverViewturnright();" onMouseOut="mouseout();" style=" position: absolute; top: 20 ; left:100; width:28; height:38;cursor: pointer;"></div>
-<div id="Viewreset" onClick="doViewreset();" onMouseOver="onoverViewreset();" onMouseOut="mouseout();" style=" position: absolute; top: 30 ; left:56.5; width:20; height:15;cursor: pointer;"></div>
-<div id="Viewpull" onClick="doViewpull();" style=" position: absolute; top: 70; left:80; width:30; height:30;cursor: pointer; background-image:url(icons/pull.png);display:none;"></div>
-<div id="Viewpush" onClick="doViewpush();" style=" position: absolute; top: 70; left:120; width:30; height:30;cursor: pointer; background-image:url(icons/push.png);display:none;"></div>
-</div>
+            <div id="newThiings" onMouseOver="ButtonEffect(this.id,'tada');" onClick="creatNewThings(gl2_things);" style="position: absolute; top:225;left:70; background-image:url(icons/newThiings.png); width:100; height:30;cursor: pointer;">
+            </div>
+            <div id="compass" style=" position: absolute; left:52.5; top: 450 ;width:135; height:75; background-image:url(icons/compass/compass.png);cursor: pointer;">
+                <div id="viewbutton" onClick="changeView()" style=" position: absolute; left:-20; top: 70 ;width:100; height:30; background-image:url(icons/view1.png); cursor: pointer;"></div>
+                <div id="Viewgoup" onMouseDown="doViewgoup();" onMouseUp="undoViewgoup();" onMouseOver="onoverViewgoup();" onMouseOut="mouseout();"
+                    style=" position: absolute; top: 10 ; left:56.5; width:20; height:15;cursor: pointer;"></div>
+                <div id="Viewgodown" onMouseDown="doViewgodown();" onMouseUp="undoViewgodown();" onMouseOver="onoverViewgodown();" onMouseOut="mouseout();"
+                    style=" position: absolute; top: 50 ; left:56.5; width:20; height:15;cursor: pointer;"></div>
+                <div id="Viewgoleft" onMouseDown="doViewgoleft();" onMouseUp="undoViewgoleft();" onMouseOver="onoverViewgoleft();" onMouseOut="mouseout();"
+                    style=" position: absolute; top: 28 ; left:34.5; width:15; height:20;cursor: pointer;"></div>
+                <div id="Viewgoright" onMouseDown="doViewgoright();" onMouseUp="undoViewgoright();" onMouseOver="onoverViewgoright();" onMouseOut="mouseout();"
+                    style=" position: absolute; top: 28 ; left:84.5; width:15; height:20;cursor: pointer;"></div>
+                <div id="Viewturnleft" onMouseDown="doViewturnleft();" onMouseUp="undoViewturnleft();" onMouseOver="onoverViewturnleft();"
+                    onMouseOut="mouseout();" style=" position: absolute; top: 20 ; left:5; width:28; height:38;cursor: pointer;"></div>
+                <div id="Viewturnright" onMouseDown="doViewturnright();" onMouseUp="undoViewturnright();" onMouseOver="onoverViewturnright();"
+                    onMouseOut="mouseout();" style=" position: absolute; top: 20 ; left:100; width:28; height:38;cursor: pointer;"></div>
+                <div id="Viewreset" onClick="doViewreset();" onMouseOver="onoverViewreset();" onMouseOut="mouseout();" style=" position: absolute; top: 30 ; left:56.5; width:20; height:15;cursor: pointer;"></div>
+                <div id="Viewpull" onClick="doViewpull();" style=" position: absolute; top: 70; left:80; width:30; height:30;cursor: pointer; background-image:url(icons/pull.png);display:none;"></div>
+                <div id="Viewpush" onClick="doViewpush();" style=" position: absolute; top: 70; left:120; width:30; height:30;cursor: pointer; background-image:url(icons/push.png);display:none;"></div>
+            </div>
 
 
 
@@ -481,413 +471,383 @@
 
 
 
-<div id="modelslider" style="position: absolute; top:260;left:22; background-image:url(icons/unselected.png);  width:196; height:68;">
-               <div id="modelsliderleft" onClick="modelsliderleft();" style="position: absolute; left:0; top:68; background-image:url(icons/arrow-left2.png); width:40; height:20;cursor: pointer;display:block;"></div>
-               <div id="button" style="position: absolute; left:78; top:68; background-image:url(icons/button.png); width:40; height:20;cursor: pointer; "></div>
-                    <ul id="modelMenu">
-						<li class="model" id="model_1" style="display:none"></li>
-						<li class="model" id="model_2" style="display:none"></li>
-						<li class="model" id="model_3" style="display:none"></li>
-						<li class="model" id="model_4" style="display:none"></li>
-						<li class="model" id="model_5" style="display:none"></li>
-						<li class="model" id="model_6" style="display:none"></li>
-						<li class="model" id="model_7" style="display:none"></li>
-						<li class="model" id="model_8" style="display:none"></li>
-						<li class="model" id="model_9" style="display:none"></li>
-						<li class="model" id="model_10" style="display:none"></li>
-						<li class="model" id="model_11" style="display:none"></li>
-						<li class="model" id="model_12" style="display:none"></li>
-					</ul>
-                    <ul id="modelMenu_1">
-						<li class="model" id="model_1_1" style="display:none"></li>
-                        <li class="model" id="model_1_2" style="display:none"></li>
-                        <li class="model" id="model_1_3" style="display:none"></li>
-				   </ul>
-                   <ul id="modelMenu_2">
-						<li class="model" id="model_2_1" style="display:none"></li>
-                        <li class="model" id="model_2_2" style="display:none"></li>
-                        <li class="model" id="model_2_3" style="display:none"></li>
-				   </ul>
-                   <ul id="modelMenu_3">
-						<li class="model" id="model_3_1" style="display:none"></li>
-                        <li class="model" id="model_3_2" style="display:none"></li>
-                        <li class="model" id="model_3_3" style="display:none"></li>
-				   </ul>
-                   <ul id="modelMenu_4">
-						<li class="model" id="model_4_1" style="display:none"></li>
-                        <li class="model" id="model_4_2" style="display:none"></li>
-                        <li class="model" id="model_4_3" style="display:none"></li>
-                        <li class="model" id="model_4_4" style="display:none"></li>
-                        <li class="model" id="model_4_5" style="display:none"></li>
-                        <li class="model" id="model_4_6" style="display:none"></li>
-				   </ul>
-                    <ul id="modelMenu_5">
-						<li class="model" id="model_5_1" style="display:none"></li>
-                        <li class="model" id="model_5_2" style="display:none"></li>
-                        <li class="model" id="model_5_3" style="display:none"></li>
-				   </ul>
-                   <ul id="modelMenu_6">
-						<li class="model" id="model_6_1" style="display:none"></li>
-                        <li class="model" id="model_6_2" style="display:none"></li>
-                        <li class="model" id="model_6_3" style="display:none"></li>
-                        <li class="model" id="model_6_4" style="display:none"></li>
-                        <li class="model" id="model_6_5" style="display:none"></li>
-             	   </ul>
-                   <ul id="modelMenu_7">
-						<li class="model" id="model_7_1" style="display:none"></li>
-                        <li class="model" id="model_7_2" style="display:none"></li>
-                        <li class="model" id="model_7_3" style="display:none"></li>
-				   </ul>     
-                   <ul id="modelMenu_8">
-						<li class="model" id="model_8_1" style="display:none"></li>
-                        <li class="model" id="model_8_2" style="display:none"></li>
-                        <li class="model" id="model_8_3" style="display:none"></li>
-				   </ul>
-                   <ul id="modelMenu_9">
-						<li class="model" id="model_9_1" style="display:none"></li>
-                        <li class="model" id="model_9_2" style="display:none"></li>
-                        <li class="model" id="model_9_3" style="display:none"></li>
-     			   </ul>
-                   <ul id="modelMenu_10">
-						<li class="model" id="model_10_1" style="display:none"></li>
-                        <li class="model" id="model_10_2" style="display:none"></li>
-                        <li class="model" id="model_10_3" style="display:none"></li>
-                        <li class="model" id="model_10_4" style="display:none"></li>
-                        <li class="model" id="model_10_5" style="display:none"></li>
-             	   </ul>
-                   <ul id="modelMenu_11">
-						<li class="model" id="model_11_1" style="display:none"></li>
-                        <li class="model" id="model_11_2" style="display:none"></li>
-                        <li class="model" id="model_11_3" style="display:none"></li>
-              	   </ul>
-                   <ul id="modelMenu_12">
-						<li class="model" id="model_12_1" style="display:none"></li>
-                        <li class="model" id="model_12_2" style="display:none"></li>
-                        <li class="model" id="model_12_3" style="display:none"></li>
-                        <li class="model" id="model_12_4" style="display:none"></li>
-                        <li class="model" id="model_12_5" style="display:none"></li>
-                        <li class="model" id="model_12_6" style="display:none"></li>
-              	   </ul>
-               <div id="modelsliderright" onClick="modelsliderright();" style="position: absolute; left:156;top:68;background-image:url(icons/arrow-right2.png); width:40; height:20;cursor: pointer; display:block;"></div>                  
-				
-</div>
+            <div id="modelslider" style="position: absolute; top:260;left:22; background-image:url(icons/unselected.png);  width:196; height:68;">
+                <div id="modelsliderleft" onClick="modelsliderleft();" style="position: absolute; left:0; top:68; background-image:url(icons/arrow-left2.png); width:40; height:20;cursor: pointer;display:block;"></div>
+                <div id="button" style="position: absolute; left:78; top:68; background-image:url(icons/button.png); width:40; height:20;cursor: pointer; "></div>
+                <ul id="modelMenu">
+                    <li class="model" id="model_1" style="display:none"></li>
+                    <li class="model" id="model_2" style="display:none"></li>
+                    <li class="model" id="model_3" style="display:none"></li>
+                    <li class="model" id="model_4" style="display:none"></li>
+                    <li class="model" id="model_5" style="display:none"></li>
+                    <li class="model" id="model_6" style="display:none"></li>
+                    <li class="model" id="model_7" style="display:none"></li>
+                    <li class="model" id="model_8" style="display:none"></li>
+                    <li class="model" id="model_9" style="display:none"></li>
+                    <li class="model" id="model_10" style="display:none"></li>
+                    <li class="model" id="model_11" style="display:none"></li>
+                    <li class="model" id="model_12" style="display:none"></li>
+                </ul>
+                <ul id="modelMenu_1">
+                    <li class="model" id="model_1_1" style="display:none"></li>
+                    <li class="model" id="model_1_2" style="display:none"></li>
+                    <li class="model" id="model_1_3" style="display:none"></li>
+                </ul>
+                <ul id="modelMenu_2">
+                    <li class="model" id="model_2_1" style="display:none"></li>
+                    <li class="model" id="model_2_2" style="display:none"></li>
+                    <li class="model" id="model_2_3" style="display:none"></li>
+                </ul>
+                <ul id="modelMenu_3">
+                    <li class="model" id="model_3_1" style="display:none"></li>
+                    <li class="model" id="model_3_2" style="display:none"></li>
+                    <li class="model" id="model_3_3" style="display:none"></li>
+                </ul>
+                <ul id="modelMenu_4">
+                    <li class="model" id="model_4_1" style="display:none"></li>
+                    <li class="model" id="model_4_2" style="display:none"></li>
+                    <li class="model" id="model_4_3" style="display:none"></li>
+                    <li class="model" id="model_4_4" style="display:none"></li>
+                    <li class="model" id="model_4_5" style="display:none"></li>
+                    <li class="model" id="model_4_6" style="display:none"></li>
+                </ul>
+                <ul id="modelMenu_5">
+                    <li class="model" id="model_5_1" style="display:none"></li>
+                    <li class="model" id="model_5_2" style="display:none"></li>
+                    <li class="model" id="model_5_3" style="display:none"></li>
+                </ul>
+                <ul id="modelMenu_6">
+                    <li class="model" id="model_6_1" style="display:none"></li>
+                    <li class="model" id="model_6_2" style="display:none"></li>
+                    <li class="model" id="model_6_3" style="display:none"></li>
+                    <li class="model" id="model_6_4" style="display:none"></li>
+                    <li class="model" id="model_6_5" style="display:none"></li>
+                </ul>
+                <ul id="modelMenu_7">
+                    <li class="model" id="model_7_1" style="display:none"></li>
+                    <li class="model" id="model_7_2" style="display:none"></li>
+                    <li class="model" id="model_7_3" style="display:none"></li>
+                </ul>
+                <ul id="modelMenu_8">
+                    <li class="model" id="model_8_1" style="display:none"></li>
+                    <li class="model" id="model_8_2" style="display:none"></li>
+                    <li class="model" id="model_8_3" style="display:none"></li>
+                </ul>
+                <ul id="modelMenu_9">
+                    <li class="model" id="model_9_1" style="display:none"></li>
+                    <li class="model" id="model_9_2" style="display:none"></li>
+                    <li class="model" id="model_9_3" style="display:none"></li>
+                </ul>
+                <ul id="modelMenu_10">
+                    <li class="model" id="model_10_1" style="display:none"></li>
+                    <li class="model" id="model_10_2" style="display:none"></li>
+                    <li class="model" id="model_10_3" style="display:none"></li>
+                    <li class="model" id="model_10_4" style="display:none"></li>
+                    <li class="model" id="model_10_5" style="display:none"></li>
+                </ul>
+                <ul id="modelMenu_11">
+                    <li class="model" id="model_11_1" style="display:none"></li>
+                    <li class="model" id="model_11_2" style="display:none"></li>
+                    <li class="model" id="model_11_3" style="display:none"></li>
+                </ul>
+                <ul id="modelMenu_12">
+                    <li class="model" id="model_12_1" style="display:none"></li>
+                    <li class="model" id="model_12_2" style="display:none"></li>
+                    <li class="model" id="model_12_3" style="display:none"></li>
+                    <li class="model" id="model_12_4" style="display:none"></li>
+                    <li class="model" id="model_12_5" style="display:none"></li>
+                    <li class="model" id="model_12_6" style="display:none"></li>
+                </ul>
+                <div id="modelsliderright" onClick="modelsliderright();" style="position: absolute; left:156;top:68;background-image:url(icons/arrow-right2.png); width:40; height:20;cursor: pointer; display:block;"></div>
 
-<div id="textureslider" style="position: absolute; top:353;left:20; background-image:url(icons/unselected.png); width:196; height:68;">
-                    <div id="texturesliderleft" onClick="texturesliderleft();" style="position: absolute; left:0; top:68; background-image:url(icons/arrow-left2.png); width:40; height:20;cursor: pointer; display:block;"></div>
-                    <ul id="textureMenu_1">
+            </div>
+
+            <div id="textureslider" style="position: absolute; top:353;left:20; background-image:url(icons/unselected.png); width:196; height:68;">
+                <div id="texturesliderleft" onClick="texturesliderleft();" style="position: absolute; left:0; top:68; background-image:url(icons/arrow-left2.png); width:40; height:20;cursor: pointer; display:block;"></div>
+                <ul id="textureMenu_1">
                     <li class="texture" id="texture_1_0" style="display:none"></li>
                     <li class="texture" id="texture_1_1" style="display:none"></li>
                     <li class="texture" id="texture_1_2" style="display:none"></li>
                     <li class="texture" id="texture_1_3" style="display:none"></li>
                     <li class="texture" id="texture_1_4" style="display:none"></li>
                     <li class="texture" id="texture_1_5" style="display:none"></li>
-                    
-                    
-                    </ul>
-                    <ul id="textureMenu_2">
+
+
+                </ul>
+                <ul id="textureMenu_2">
                     <li class="texture" id="texture_2_0" style="display:none"></li>
                     <li class="texture" id="texture_2_1" style="display:none"></li>
                     <li class="texture" id="texture_2_2" style="display:none"></li>
-                    
-                    </ul>
-                    <ul id="textureMenu_3">
+
+                </ul>
+                <ul id="textureMenu_3">
                     <li class="texture" id="texture_3_0" style="display:none"></li>
                     <li class="texture" id="texture_3_1" style="display:none"></li>
                     <li class="texture" id="texture_3_2" style="display:none"></li>
                     <li class="texture" id="texture_3_3" style="display:none"></li>
                     <li class="texture" id="texture_3_4" style="display:none"></li>
                     <li class="texture" id="texture_3_5" style="display:none"></li>
-                    
-                    </ul>
-                    <ul id="textureMenu_4">
+
+                </ul>
+                <ul id="textureMenu_4">
                     <li class="texture" id="texture_4_0" style="display:none"></li>
                     <li class="texture" id="texture_4_1" style="display:none"></li>
                     <li class="texture" id="texture_4_2" style="display:none"></li>
                     <li class="texture" id="texture_4_3" style="display:none"></li>
                     <li class="texture" id="texture_4_4" style="display:none"></li>
-                    
-                    </ul>
-                    <ul id="textureMenu_5">
+
+                </ul>
+                <ul id="textureMenu_5">
                     <li class="texture" id="texture_5_0" style="display:none"></li>
                     <li class="texture" id="texture_5_1" style="display:none"></li>
                     <li class="texture" id="texture_5_2" style="display:none"></li>
                     <li class="texture" id="texture_5_3" style="display:none"></li>
                     <li class="texture" id="texture_5_4" style="display:none"></li>
-                    
-                    
-                    </ul>
-                    <ul id="textureMenu_6">
-                    <li class="texture" id="texture_6_0" style="display:none"></li> 
-                    <li class="texture" id="texture_6_1" style="display:none"></li> 
-                    <li class="texture" id="texture_6_2" style="display:none"></li> 
-                    
-                    </ul>
-                    <ul id="textureMenu_7">
+
+
+                </ul>
+                <ul id="textureMenu_6">
+                    <li class="texture" id="texture_6_0" style="display:none"></li>
+                    <li class="texture" id="texture_6_1" style="display:none"></li>
+                    <li class="texture" id="texture_6_2" style="display:none"></li>
+
+                </ul>
+                <ul id="textureMenu_7">
                     <li class="texture" id="texture_7_0" style="display:none"></li>
                     <li class="texture" id="texture_7_1" style="display:none"></li>
                     <li class="texture" id="texture_7_2" style="display:none"></li>
                     <li class="texture" id="texture_7_3" style="display:none"></li>
                     <li class="texture" id="texture_7_4" style="display:none"></li>
-                    
-                    </ul>
-                    <ul id="textureMenu_8">
+
+                </ul>
+                <ul id="textureMenu_8">
                     <li class="texture" id="texture_8_0" style="display:none"></li>
                     <li class="texture" id="texture_8_1" style="display:none"></li>
                     <li class="texture" id="texture_8_2" style="display:none"></li>
                     <li class="texture" id="texture_8_3" style="display:none"></li>
                     <li class="texture" id="texture_8_4" style="display:none"></li>
-                    
-                    </ul>
-                    <ul id="ceilingtextureMenu">
-						<li class="texture" id="ceilingtexture_1" style="display:none"></li>
-						<li class="texture" id="ceilingtexture_2" style="display:none"></li>
-						<li class="texture" id="ceilingtexture_3" style="display:none"></li>
-						<li class="texture" id="ceilingtexture_4" style="display:none"></li>
-						<li class="texture" id="ceilingtexture_5" style="display:none"></li>
-						<li class="texture" id="ceilingtexture_6" style="display:none"></li>
-						<li class="texture" id="ceilingtexture_7" style="display:none"></li>
-						<li class="texture" id="ceilingtexture_8" style="display:none"></li>
-						<li class="texture" id="ceilingtexture_9" style="display:none"></li>
-						<li class="texture" id="ceilingtexture_10" style="display:none"></li>
-						<li class="texture" id="ceilingtexture_11" style="display:none"></li>
-						<li class="texture" id="ceilingtexture_12" style="display:none"></li>
-					</ul>
-                    <ul id="walltextureMenu">
-						<li class="texture" id="walltexture_1" style="display:none"></li>
-						<li class="texture" id="walltexture_2" style="display:none"></li>
-						<li class="texture" id="walltexture_3" style="display:none"></li>
-						<li class="texture" id="walltexture_4" style="display:none"></li>
-						<li class="texture" id="walltexture_5" style="display:none"></li>
-						<li class="texture" id="walltexture_6" style="display:none"></li>
-						<li class="texture" id="walltexture_7" style="display:none"></li>
-						<li class="texture" id="walltexture_8" style="display:none"></li>
-						<li class="texture" id="walltexture_9" style="display:none"></li>
-						<li class="texture" id="walltexture_10" style="display:none"></li>
-					</ul>
-                    <ul id="floortextureMenu">
-						<li class="texture" id="floortexture_1" style="display:none"></li>
-						<li class="texture" id="floortexture_2" style="display:none"></li>
-						<li class="texture" id="floortexture_3" style="display:none"></li>
-						<li class="texture" id="floortexture_4" style="display:none"></li>
-						<li class="texture" id="floortexture_5" style="display:none"></li>
-						<li class="texture" id="floortexture_6" style="display:none"></li>
-						<li class="texture" id="floortexture_7" style="display:none"></li>
-						<li class="texture" id="floortexture_8" style="display:none"></li>
-						<li class="texture" id="floortexture_9" style="display:none"></li>
-						<li class="texture" id="floortexture_10" style="display:none"></li>
-					</ul>
-                    <div id="texturesliderright" onClick="texturesliderright();" style="position: absolute; left:156; top:68; background-image:url(icons/arrow-right2.png); width:40; height:20;cursor: pointer; display:block;"></div>
-</div>
+
+                </ul>
+                <ul id="ceilingtextureMenu">
+                    <li class="texture" id="ceilingtexture_1" style="display:none"></li>
+                    <li class="texture" id="ceilingtexture_2" style="display:none"></li>
+                    <li class="texture" id="ceilingtexture_3" style="display:none"></li>
+                    <li class="texture" id="ceilingtexture_4" style="display:none"></li>
+                    <li class="texture" id="ceilingtexture_5" style="display:none"></li>
+                    <li class="texture" id="ceilingtexture_6" style="display:none"></li>
+                    <li class="texture" id="ceilingtexture_7" style="display:none"></li>
+                    <li class="texture" id="ceilingtexture_8" style="display:none"></li>
+                    <li class="texture" id="ceilingtexture_9" style="display:none"></li>
+                    <li class="texture" id="ceilingtexture_10" style="display:none"></li>
+                    <li class="texture" id="ceilingtexture_11" style="display:none"></li>
+                    <li class="texture" id="ceilingtexture_12" style="display:none"></li>
+                </ul>
+                <ul id="walltextureMenu">
+                    <li class="texture" id="walltexture_1" style="display:none"></li>
+                    <li class="texture" id="walltexture_2" style="display:none"></li>
+                    <li class="texture" id="walltexture_3" style="display:none"></li>
+                    <li class="texture" id="walltexture_4" style="display:none"></li>
+                    <li class="texture" id="walltexture_5" style="display:none"></li>
+                    <li class="texture" id="walltexture_6" style="display:none"></li>
+                    <li class="texture" id="walltexture_7" style="display:none"></li>
+                    <li class="texture" id="walltexture_8" style="display:none"></li>
+                    <li class="texture" id="walltexture_9" style="display:none"></li>
+                    <li class="texture" id="walltexture_10" style="display:none"></li>
+                </ul>
+                <ul id="floortextureMenu">
+                    <li class="texture" id="floortexture_1" style="display:none"></li>
+                    <li class="texture" id="floortexture_2" style="display:none"></li>
+                    <li class="texture" id="floortexture_3" style="display:none"></li>
+                    <li class="texture" id="floortexture_4" style="display:none"></li>
+                    <li class="texture" id="floortexture_5" style="display:none"></li>
+                    <li class="texture" id="floortexture_6" style="display:none"></li>
+                    <li class="texture" id="floortexture_7" style="display:none"></li>
+                    <li class="texture" id="floortexture_8" style="display:none"></li>
+                    <li class="texture" id="floortexture_9" style="display:none"></li>
+                    <li class="texture" id="floortexture_10" style="display:none"></li>
+                </ul>
+                <div id="texturesliderright" onClick="texturesliderright();" style="position: absolute; left:156; top:68; background-image:url(icons/arrow-right2.png); width:40; height:20;cursor: pointer; display:block;"></div>
+            </div>
 
 
-</div>
-
-
-
-
-<div id="openmap" onClick="displaymap();" style=" background-image:url(icons/openmap.png); position: absolute;top: 160;width:240; height:20;display: none;cursor: pointer;"></div>
-<div id="map" style="background-image:url(icons/map.png); position: absolute;top: 180;width:240; height:220;display: none;"></div>
-<div id="promptAdd" onClick="lagelapsedtozero();" style="position: absolute;  top: 140; width:100; height:100; background-image:url(icons/add.png);display: none;opacity:0;cursor: pointer;"></div>
-
-
-<div id="roomname" onClick="roomnameOnClick()" style="background-color:#FFF; position: absolute;top: 40;width:200; height:40;display: none;cursor: text;">没有名字</div>
-<input name="textarea" onKeyPress="keyfinishroomname(event);" id="roomnameInputArea"  style="background-color:#FFF; position: absolute;top: 40;width:200; height:40;display: none;cursor: text;"></input>
-
-<div class="contextMenu" id="rightkeyMenu">
-	<ul>
-	<li id="item_1">
-	  <div align="center">-=物体信息=-</div>
-	</li>
-	<li id="item_2">
-	  <div align="center">-=改变贴图=-</div>
-	</li>
-	<li id="item_3">
-	  <div align="center">-=旋转物体=-</div>
-	</li>
-	<li id="item_4">
-	  <div align="center">-=删除物体=-</div>
-	</li>
-    <li id="item_5">
-	  <div align="center">-=撤销操作=-</div>
-	</li>
-  </ul>
-</div>
-<div class="contextMenu" id="TVrightkeyMenu">
-	<ul>
-	<li id="item_1">
-	  <div align="center">-=物体信息=-</div>
-	</li>
-	<li id="item_2">
-	  <div align="center">-=开关电视=-</div>
-	</li>
-    <li id="item_3">
-	  <div align="center">-=改变频道=-</div>
-	</li>
-	<li id="item_4">
-	  <div align="center">-=旋转物体=-</div>
-	</li>
-	<li id="item_5">
-	  <div align="center">-=删除物体=-</div>
-	</li>
-    <li id="item_6">
-	  <div align="center">-=撤销操作=-</div>
-	</li>
-  </ul>
-</div>
-
-<div class="contextMenu" id="rightkeyMenu2">
-	<ul>
-	<li id="item_1">
-	  <div align="center">-=添加物体=-</div>
-	</li>
-    <li id="item_2">
-	  <div align="center">-=顶部贴图=-</div>
-	</li>
-    <li id="item_3">
-	  <div align="center">-=墙壁贴图=-</div>
-	</li>
-    <li id="item_4">
-	  <div align="center">-=地板贴图=-</div>
-	</li>
-    <li id="item_5">
-	  <div align="center">-=撤销操作=-</div>
-	</li>
-    
-  </ul>
-</div>
-
-<div class="contextMenu" id="rightkeyMenu3">
-	<ul>
-	<li id="item_1">
-	  <div align="center">-=物体信息=-</div>
-	</li>
-	<li id="item_2">
-	  <div align="center">-=旋转物体=-</div>
-	</li>
-	<li id="item_3">
-	  <div align="center">-=删除物体=-</div>
-	</li>
-    <li id="item_4">
-	  <div align="center">-=撤销操作=-</div>
-	</li>
-  </ul>
-</div>
-
-
-
-<div class="contextMenu" id="DoorrightkeyMenu">
-	<ul>
-	<li id="item_1">
-	  <div align="center">-=物体信息=-</div>
-	</li>
-	<li id="item_2">
-	  <div align="center">-=开关房门=-</div>
-	</li>
-	<li id="item_3">
-	  <div align="center">-=旋转物体=-</div>
-	</li>
-	<li id="item_4">
-	  <div align="center">-=删除物体=-</div>
-	</li>
-    <li id="item_5">
-	  <div align="center">-=撤销操作=-</div>
-	</li>
-  </ul>
-</div>
-				
-
-
-<div id="input" style="position: absolute;  top: 65 ; display: none">
-                  <div id="buttonEmpty" onMouseOver="ButtonEffect(this.id,'pulse');" ></div>
-                  <div id="buttonDefault1" onMouseOver="ButtonEffect(this.id,'pulse');" ></div>
-                  <div id="buttonDefault2" onMouseOver="ButtonEffect(this.id,'pulse');" ></div>
-                  
-                  <div id="buttonOutput" onMouseOver="ButtonEffect(this.id,'pulse');"  style="left:560"></div>
-                  <div id="buttonInput" onMouseOver="ButtonEffect(this.id,'pulse');" style="left:490"></div>
-                  <div id="help" onMouseOver="ButtonEffect(this.id,'pulse');" style="left:420"></div>
-                  
-                  <div id="buttonOutputText" style="position: absolute;  top: 90 ; display: none">输出</div>
-                  <div id="buttonInputText" style="position: absolute;  top: 90 ; display: none">输入</div>
-                  <div id="helpText" style="position: absolute;  top: 90 ; display: none">帮助</div>
-                  
-                  <div id="viewlock" onMouseOver="ButtonEffect(this.id,'pulse');"  onClick="viewlock();" style=" position: absolute; left:210;width:64; height:64;cursor: pointer; background-image:url(icons/viewlock.png);"></div>
-                  <div id="testmode" onMouseOver="ButtonEffect(this.id,'pulse');"  onClick="changetestmode();" style=" position: absolute; left:280;width:64; height:64;cursor: pointer; background-image:url(icons/testmode.png);"></div>
-                  <div id="tapmode" onMouseOver="ButtonEffect(this.id,'pulse');"  onClick="tapmode();" style=" position: absolute; left:350;width:64; height:64;cursor: pointer; background-image:url(icons/tapmode.png);"></div>
-                  
-</div>
+        </div>
 
 
 
 
-<div id="thingsinformation"  onMouseOut="thingsinformationOut(informationcount);" onMouseOver="thingsinformationOver();" style="position: absolute;  top: 150 ;display:none;"></div>
-<div id="thingsinformationText" onMouseOver="thingsinformationTextOver();" style="position: absolute;  top: 180 ;display:none;"></div>
-
-<div id="inputstream" align="center" style="position: absolute;  top: 100 ;display:none">
-
-<textarea name="textarea" id="inputarea" style="width:600; height:400; resize:none; background:url(img/inputarea.jpg)">请在此输入</textarea>
-<br>
-<button onClick="inputareaclean();">清空</button>
-<button onClick="inputareabuttononclick();">提交</button>
-<button onClick="inputareacancel();">取消</button>
-
-</div>
-
-<div id="outputstream" align="center" style="position: absolute;  top: 100 ;display:none">
-<textarea name="textarea" id="outputarea" readonly style="width:600; height:400; resize:none; background:url(img/outputarea.jpg)"></textarea>
-<br>
-<button onClick="outputareacancel();">关闭</button>
-</div>
+        <div id="openmap" onClick="displaymap();" style=" background-image:url(icons/openmap.png); position: absolute;top: 160;width:240; height:20;display: none;cursor: pointer;"></div>
+        <div id="map" style="background-image:url(icons/map.png); position: absolute;top: 180;width:240; height:220;display: none;"></div>
+        <div id="promptAdd" onClick="lagelapsedtozero();" style="position: absolute;  top: 140; width:100; height:100; background-image:url(icons/add.png);display: none;opacity:0;cursor: pointer;"></div>
 
 
-<div id="caption" align="center" style="position: absolute;  top: 605;width:1000; height:30; display:none; color:#FFF ">
-<div id="tips" style="font-size: 10px">
-Tips:在选中物品时，可按键盘上的T和G放大和缩小物体。
+        <div id="roomname" onClick="roomnameOnClick()" style="background-color:#FFF; position: absolute;top: 40;width:200; height:40;display: none;cursor: text;">没有名字</div>
+        <input name="textarea" onKeyPress="keyfinishroomname(event);" id="roomnameInputArea" style="background-color:#FFF; position: absolute;top: 40;width:200; height:40;display: none;cursor: text;"></input>
+
+        <div class="contextMenu" id="rightkeyMenu">
+            <ul>
+                <li id="item_1">
+                    <div align="center">-=物体信息=-</div>
+                </li>
+                <li id="item_2">
+                    <div align="center">-=改变贴图=-</div>
+                </li>
+                <li id="item_3">
+                    <div align="center">-=旋转物体=-</div>
+                </li>
+                <li id="item_4">
+                    <div align="center">-=删除物体=-</div>
+                </li>
+                <li id="item_5">
+                    <div align="center">-=撤销操作=-</div>
+                </li>
+            </ul>
+        </div>
+        <div class="contextMenu" id="TVrightkeyMenu">
+            <ul>
+                <li id="item_1">
+                    <div align="center">-=物体信息=-</div>
+                </li>
+                <li id="item_2">
+                    <div align="center">-=开关电视=-</div>
+                </li>
+                <li id="item_3">
+                    <div align="center">-=改变频道=-</div>
+                </li>
+                <li id="item_4">
+                    <div align="center">-=旋转物体=-</div>
+                </li>
+                <li id="item_5">
+                    <div align="center">-=删除物体=-</div>
+                </li>
+                <li id="item_6">
+                    <div align="center">-=撤销操作=-</div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="contextMenu" id="rightkeyMenu2">
+            <ul>
+                <li id="item_1">
+                    <div align="center">-=添加物体=-</div>
+                </li>
+                <li id="item_2">
+                    <div align="center">-=顶部贴图=-</div>
+                </li>
+                <li id="item_3">
+                    <div align="center">-=墙壁贴图=-</div>
+                </li>
+                <li id="item_4">
+                    <div align="center">-=地板贴图=-</div>
+                </li>
+                <li id="item_5">
+                    <div align="center">-=撤销操作=-</div>
+                </li>
+
+            </ul>
+        </div>
+
+        <div class="contextMenu" id="rightkeyMenu3">
+            <ul>
+                <li id="item_1">
+                    <div align="center">-=物体信息=-</div>
+                </li>
+                <li id="item_2">
+                    <div align="center">-=旋转物体=-</div>
+                </li>
+                <li id="item_3">
+                    <div align="center">-=删除物体=-</div>
+                </li>
+                <li id="item_4">
+                    <div align="center">-=撤销操作=-</div>
+                </li>
+            </ul>
+        </div>
 
 
-</div>
-<img src="icons/html5.png" />
-&nbsp;
-<img src="icons/webgl.gif" />
-<div id="testtext" align="center" style="display: none;">
-<div id="test" style="color:#FFF">光源位置</div>
-<div id="test2" style="color:#FFF">未点选物品。</div>
-<div id="test3" style="color:#FFF"></div>
-</div>
-</div>
+
+        <div class="contextMenu" id="DoorrightkeyMenu">
+            <ul>
+                <li id="item_1">
+                    <div align="center">-=物体信息=-</div>
+                </li>
+                <li id="item_2">
+                    <div align="center">-=开关房门=-</div>
+                </li>
+                <li id="item_3">
+                    <div align="center">-=旋转物体=-</div>
+                </li>
+                <li id="item_4">
+                    <div align="center">-=删除物体=-</div>
+                </li>
+                <li id="item_5">
+                    <div align="center">-=撤销操作=-</div>
+                </li>
+            </ul>
+        </div>
+
+
+
+        <div id="input" style="position: absolute;  top: 65 ; display: none">
+            <div id="buttonEmpty" onMouseOver="ButtonEffect(this.id,'pulse');"></div>
+            <div id="buttonDefault1" onMouseOver="ButtonEffect(this.id,'pulse');"></div>
+            <div id="buttonDefault2" onMouseOver="ButtonEffect(this.id,'pulse');"></div>
+
+            <div id="buttonOutput" onMouseOver="ButtonEffect(this.id,'pulse');" style="left:560"></div>
+            <div id="buttonInput" onMouseOver="ButtonEffect(this.id,'pulse');" style="left:490"></div>
+            <div id="help" onMouseOver="ButtonEffect(this.id,'pulse');" style="left:420"></div>
+
+            <div id="buttonOutputText" style="position: absolute;  top: 90 ; display: none">输出</div>
+            <div id="buttonInputText" style="position: absolute;  top: 90 ; display: none">输入</div>
+            <div id="helpText" style="position: absolute;  top: 90 ; display: none">帮助</div>
+
+            <div id="viewlock" onMouseOver="ButtonEffect(this.id,'pulse');" onClick="viewlock();" style=" position: absolute; left:210;width:64; height:64;cursor: pointer; background-image:url(icons/viewlock.png);"></div>
+            <div id="testmode" onMouseOver="ButtonEffect(this.id,'pulse');" onClick="changetestmode();" style=" position: absolute; left:280;width:64; height:64;cursor: pointer; background-image:url(icons/testmode.png);"></div>
+            <div id="tapmode" onMouseOver="ButtonEffect(this.id,'pulse');" onClick="tapmode();" style=" position: absolute; left:350;width:64; height:64;cursor: pointer; background-image:url(icons/tapmode.png);"></div>
+
+        </div>
 
 
 
 
-<div id="logonarea" style="position: absolute; display:none; width:300; height:500; background-image:url(icons/logonarea.png)" onMouseOver="logonareaover();" onMouseOut="logonareaout();">
-<form id="logonform" align="center" name="logonform" method="post" action="" >
-<p>
-<div id="logonerror" style="color:#000">请输入用户名和密码</div>
-</p>
-<div id="logondefault" style="display:block; position: absolute; left:15; top:50">
+        <div id="thingsinformation" onMouseOut="thingsinformationOut(informationcount);" onMouseOver="thingsinformationOver();" style="position: absolute;  top: 150 ;display:none;"></div>
+        <div id="thingsinformationText" onMouseOver="thingsinformationTextOver();" style="position: absolute;  top: 180 ;display:none;"></div>
 
-<p>用户名：<input type="text" name="username" id="username" style="width:135" readonly onKeyDown="if(event.keyCode==13) AJAXRequest();"/></p>
-<p>密&nbsp;&nbsp;码：<input type="password" name="password" id="password" style="width:135" readonly onKeyDown="if(event.keyCode==13) AJAXRequest();"/></p>  
-<p><input type="button" onClick="AJAXRequest();" value="提交" style="cursor: pointer;" />&nbsp;<input type="button" onClick="logonareaclear();" value="重置" style="cursor: pointer;" /></p>
+        <div id="inputstream" align="center" style="position: absolute;  top: 100 ;display:none">
 
-<div onClick="registerClick();" style=" position: absolute; top: 160 ;width:220; height:230; background-image:url(icons/Register.png);cursor: pointer;" ></div>
-</div>
+            <textarea name="textarea" id="inputarea" style="width:600; height:400; resize:none; background:url(img/inputarea.jpg)">请在此输入</textarea>
+            <br>
+            <button onClick="inputareaclean();">清空</button>
+            <button onClick="inputareabuttononclick();">提交</button>
+            <button onClick="inputareacancel();">取消</button>
 
-<div id="onlogon" style="display:none; position: absolute; left:50; top:50">
-<p>
-<input type="button" onClick="useronloadroom();" value="载入最后一次保存的房间" />
-</p>
-<p>
-<input type="button" onClick="usersaveroom();" value="保存当前房间到服务器端" />
-</p>
-<p>
-<input type="button" onClick="usersaveandexit();" value="保存并登出" />
-<input type="button" onClick="userexit();" value="直接登出" />
-</p>
+        </div>
 
-</div>
+        <div id="outputstream" align="center" style="position: absolute;  top: 100 ;display:none">
+            <textarea name="textarea" id="outputarea" readonly style="width:600; height:400; resize:none; background:url(img/outputarea.jpg)"></textarea>
+            <br>
+            <button onClick="outputareacancel();">关闭</button>
+        </div>
 
-</form>
-</div>
 
-</body>
+        <div id="caption" align="center" style="position: absolute;  top: 605;width:1000; height:30; display:none; color:#FFF ">
+            <div id="tips" style="font-size: 10px">
+                Tips:在选中物品时，可按键盘上的T和G放大和缩小物体。
+
+
+            </div>
+            <img src="icons/html5.png" /> &nbsp;
+            <img src="icons/webgl.gif" />
+            <div id="testtext" align="center" style="display: none;">
+                <div id="test" style="color:#FFF">光源位置</div>
+                <div id="test2" style="color:#FFF">未点选物品。</div>
+                <div id="test3" style="color:#FFF"></div>
+            </div>
+        </div>
+        
+        <div id="logonarea">
+
+        </div>
+
+    </body>
+
 </html>

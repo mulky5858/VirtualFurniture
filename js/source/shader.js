@@ -71,6 +71,7 @@ function createProgram (ngl, fragmentShaderID, vertexShaderID) {
 
 var shaderProgram
 var shaderProgram2
+var shadowProgram
 
 var perVertexProgram
 var perFragmentProgram
@@ -78,9 +79,22 @@ var perFragmentProgram
 var perVertexProgram1
 var perFragmentProgram2
 
+function attachShadowUniforms (ngl, program) {
+  program.invCameraViewUniform = ngl.getUniformLocation(program, 'uInvCameraView')
+  program.lightWorldUniform = ngl.getUniformLocation(program, 'uLightWorld')
+  program.shadowMapUniform = ngl.getUniformLocation(program, 'uShadowMap')
+  program.useShadowUniform = ngl.getUniformLocation(program, 'uUseShadow')
+  program.shadowBiasUniform = ngl.getUniformLocation(program, 'uShadowBias')
+  program.shadowFarUniform = ngl.getUniformLocation(program, 'uShadowFar')
+  program.shadowTexelSizeUniform = ngl.getUniformLocation(program, 'uShadowTexelSize')
+}
+
 function initShaders (ngl) {
   // perVertexProgram = createProgram(ngl,"per-vertex-lighting-fs", "per-vertex-lighting-vs")
   perFragmentProgram = createProgram(ngl, 'per-fragment-lighting-fs', 'per-fragment-lighting-vs')
+  attachShadowUniforms(ngl, perFragmentProgram)
+  shadowProgram = createProgram(ngl, 'shadow-depth-fs', 'shadow-depth-vs')
+  shadowProgram.shadowFarUniform = ngl.getUniformLocation(shadowProgram, 'uShadowFar')
 }
 function initShaders2 (ngl) {
   perVertexProgram2 = createProgram(ngl, 'per-vertex-lighting-fs', 'per-vertex-lighting-vs')

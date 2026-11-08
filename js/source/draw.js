@@ -8,7 +8,7 @@ function drawScene () {
   gl.uniform1i(shaderProgram.useLightingUniform, 0)
   gl.uniform1i(shaderProgram.useTexturesUniform, 1)
 
-  gl.uniform3f(shaderProgram.ambientColorUniform, 0.4, 0.4, 0.4)
+  gl.uniform3f(shaderProgram.ambientColorUniform, 0.32, 0.32, 0.32)
   gl.uniform3f(shaderProgram.pointLightingColorUniform, brightness, brightness, brightness)
 
   for (var k = 1; k <= numofTVchannel; k++) {
@@ -28,6 +28,22 @@ function drawScene () {
   mat4.rotate(mvMatrix, degToRad(-yaw), [0, 1, 0])
   mat4.translate(mvMatrix, [-xPos, -yPos, -zPos])
 
+  // 保存相机视图，供阴影矩阵 = lightPV * inverse(cameraView)
+  var cameraView = mat4.create()
+  mat4.set(mvMatrix, cameraView)
+
+  // 光照开启时先从光源渲染深度阴影图
+  if (lighting) {
+    drawShadowMap(cameraView)
+    mat4.set(cameraView, mvMatrix)
+    mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix)
+    gl.useProgram(shaderProgram)
+    gl.uniform1i(shaderProgram.samplerUniform, 0)
+    gl.uniform1i(shaderProgram.useTexturesUniform, 1)
+    gl.uniform3f(shaderProgram.ambientColorUniform, 0.32, 0.32, 0.32)
+    gl.uniform3f(shaderProgram.pointLightingColorUniform, brightness, brightness, brightness)
+  }
+
   // 必须在相机矩阵建立后再变换光源，得到与顶点一致的眼空间坐标
   mat4.multiplyVec3(mvMatrix, pointlight, newpointlight)
   gl.uniform3f(shaderProgram.pointLightingLocationUniform, newpointlight[0], newpointlight[1], newpointlight[2])
@@ -39,6 +55,7 @@ function drawScene () {
 
   // 房间与家具统一受光照控制
   gl.uniform1i(shaderProgram.useLightingUniform, lighting ? 1 : 0)
+  bindShadowUniforms(!!lighting)
 
   drawroom()
 

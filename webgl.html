@@ -148,6 +148,7 @@
         <script type="text/javascript" src="js/source/testmode.js"></script>
         <script type="text/javascript" src="js/source/drawSceneOnTVScreen.js"></script>
         <script type="text/javascript" src="js/source/drawroom.js"></script>
+        <script type="text/javascript" src="js/source/shadow.js"></script>
         <script type="text/javascript" src="js/source/draw.js"></script>
         <script type="text/javascript" src="js/source/drawthings.js"></script>
         <script type="text/javascript" src="js/source/collisionDetection.js"></script>
@@ -231,34 +232,83 @@
         
             uniform bool uUseLighting;
             uniform bool uUseTextures;
-        
+            uniform bool uUseShadow;
         
             uniform vec3 uAmbientColor;
-        
             uniform vec3 uPointLightingLocation;
             uniform vec3 uPointLightingColor;
         
-        
             uniform sampler2D uSampler;
-        
+            uniform samplerCube uShadowMap;
+            uniform mat4 uInvCameraView;
+            uniform vec3 uLightWorld;
+            uniform float uShadowBias;
+            uniform float uShadowFar;
+            uniform float uShadowTexelSize;
+
+            float unpackDepth(vec4 rgba) {
+                const vec4 bitShift = vec4(1.0, 1.0 / 255.0, 1.0 / (255.0 * 255.0), 1.0 / (255.0 * 255.0 * 255.0));
+                return dot(rgba, bitShift);
+            }
+
+            float shadowSampleCube(vec3 dir, float fragDepth) {
+                float closest = unpackDepth(textureCube(uShadowMap, dir));
+                return (fragDepth - uShadowBias > closest) ? 0.0 : 1.0;
+            }
+
+            float calcShadow(vec4 eyePos) {
+                if (!uUseShadow) return 1.0;
+                vec3 worldPos = (uInvCameraView * eyePos).xyz;
+                vec3 L = worldPos - uLightWorld;
+                // 与立方体面视空间 -z 一致：取主轴分量
+                float current = max(max(abs(L.x), abs(L.y)), abs(L.z));
+                if (current < 0.001) return 1.0;
+                float linDepth = clamp(current / uShadowFar, 0.0, 1.0);
+                vec3 dir = normalize(L);
+                // 小范围 5-tap PCF，只抹掉一两个像素锯齿，保持轮廓清晰
+                vec3 absL = abs(L);
+                vec3 offsetA;
+                vec3 offsetB;
+                if (absL.x > absL.y && absL.x > absL.z) {
+                    offsetA = vec3(0.0, 1.0, 0.0);
+                    offsetB = vec3(0.0, 0.0, 1.0);
+                } else if (absL.y > absL.z) {
+                    offsetA = vec3(1.0, 0.0, 0.0);
+                    offsetB = vec3(0.0, 0.0, 1.0);
+                } else {
+                    offsetA = vec3(1.0, 0.0, 0.0);
+                    offsetB = vec3(0.0, 1.0, 0.0);
+                }
+                float disk = uShadowTexelSize * 0.9;
+                float s = shadowSampleCube(dir, linDepth);
+                s += shadowSampleCube(normalize(dir + ( offsetA + offsetB) * disk), linDepth);
+                s += shadowSampleCube(normalize(dir + ( offsetA - offsetB) * disk), linDepth);
+                s += shadowSampleCube(normalize(dir + (-offsetA + offsetB) * disk), linDepth);
+                s += shadowSampleCube(normalize(dir + (-offsetA - offsetB) * disk), linDepth);
+                s *= 0.2;
+                return mix(0.08, 1.0, s);
+            }
         
             void main(void) {
                 vec3 lightWeighting;
                 if (!uUseLighting) {
                     lightWeighting = vec3(1.0, 1.0, 1.0);
                 } else {
-                    vec3 lightDirection = normalize(uPointLightingLocation - vPosition.xyz);
-                    
-                    float directionalLightWeighting = max(dot(normalize(vTransformedNormal), lightDirection), 0.0);
-                    lightWeighting = uAmbientColor + uPointLightingColor * directionalLightWeighting;
+                    vec3 toLight = uPointLightingLocation - vPosition.xyz;
+                    float dist = length(toLight);
+                    vec3 lightDirection = toLight / max(dist, 0.0001);
+                    float diffuse = max(dot(normalize(vTransformedNormal), lightDirection), 0.0);
+                    float attenuation = 1.0 / (1.0 + 0.06 * dist * dist);
+                    float shadow = calcShadow(vPosition);
+                    lightWeighting = uAmbientColor + uPointLightingColor * diffuse * attenuation * shadow;
                 }
         
                 vec4 fragmentColor;
                 if (uUseTextures) {
-                fragmentColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+                    fragmentColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
                 } else {
                     fragmentColor = vec4(1.0, 1.0, 1.0, 1.0);
-                    }
+                }
                 gl_FragColor = vec4(fragmentColor.rgb * lightWeighting, fragmentColor.a);
             }
         </script>
@@ -283,6 +333,48 @@
                 vTextureCoord = aTextureCoord;
                 // 传入片元着色器前规范化，避免缩放后法线长度影响光照
                 vTransformedNormal = normalize(uNMatrix * aVertexNormal);
+            }
+        </script>
+
+        <script id="shadow-depth-fs" type="x-shader/x-fragment">
+            precision mediump float;
+            varying float vLinearDepth;
+
+            vec4 packDepth(float depth) {
+                const vec4 bitShift = vec4(1.0, 255.0, 255.0 * 255.0, 255.0 * 255.0 * 255.0);
+                const vec4 bitMask = vec4(1.0 / 255.0, 1.0 / 255.0, 1.0 / 255.0, 0.0);
+                vec4 res = fract(depth * bitShift);
+                res -= res.gbaa * bitMask;
+                return res;
+            }
+
+            void main(void) {
+                gl_FragColor = packDepth(clamp(vLinearDepth, 0.0, 1.0));
+            }
+        </script>
+
+        <script id="shadow-depth-vs" type="x-shader/x-vertex">
+            attribute vec3 aVertexPosition;
+            attribute vec3 aVertexNormal;
+            attribute vec2 aTextureCoord;
+
+            uniform mat4 uMVMatrix;
+            uniform mat4 uPMatrix;
+            uniform mat3 uNMatrix;
+            uniform float uShadowFar;
+
+            varying vec2 vTextureCoord;
+            varying vec3 vTransformedNormal;
+            varying vec4 vPosition;
+            varying float vLinearDepth;
+
+            void main(void) {
+                vPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
+                gl_Position = uPMatrix * vPosition;
+                vTextureCoord = aTextureCoord;
+                vTransformedNormal = aVertexNormal;
+                // 线性深度：比透视 gl_FragCoord.z 更易区分家具与地板
+                vLinearDepth = clamp(-vPosition.z / uShadowFar, 0.0, 1.0);
             }
         </script>
         
@@ -357,6 +449,7 @@
                 shaderProgram = perFragmentProgram;
                 shaderProgram2 = perVertexProgram2;
                 // 选择光照系统
+                initShadowMap();
                         
                 gl.clearColor(0.0, 0.0, 0.0, 1.0);
                 gl.enable(gl.DEPTH_TEST);

@@ -24,6 +24,9 @@ var currentlyPressedKeys = {}
 var lookSensitivity = 0.14
 var walkSpeed = 0.0045
 var walkSpeedBoost = 0.007
+// 指针锁定刚生效时浏览器偶发给出异常大的 movement，需忽略/钳制
+var ignoreLookFrames = 0
+var maxLookDelta = 40
 
 function isViewPointerLocked () {
   var canvas = document.getElementById('view')
@@ -64,12 +67,16 @@ function updatePointerLockUI () {
   }
   if (tips) {
     tips.textContent = locked
-      ? 'Tips: 鼠标视角中。WASD 移动，QE 平移，Shift 加速，ESC 退出锁定。准星对准物体点击可选中。'
-      : 'Tips: 点击画面进入鼠标视角（类游戏），ESC 退出。WASD 移动，QE 平移，Shift 加速。选中物品后可用 T/G 缩放。'
+      ? 'Tips: 鼠标视角中。WASD 移动，Shift 加速，ESC 退出锁定。准星对准物体点击可选中。'
+      : 'Tips: 点击画面进入鼠标视角，ESC 退出。WASD 移动。选中后拖拽红/绿/蓝箭头沿 XYZ 移动，T/G 缩放。'
   }
 }
 
 function applyMouseLook (dx, dy) {
+  if (dx > maxLookDelta) dx = maxLookDelta
+  else if (dx < -maxLookDelta) dx = -maxLookDelta
+  if (dy > maxLookDelta) dy = maxLookDelta
+  else if (dy < -maxLookDelta) dy = -maxLookDelta
   yaw -= dx * lookSensitivity
   var nextPitch = pitch - dy * lookSensitivity
   if (nextPitch <= 75 && nextPitch >= -75) {
@@ -215,36 +222,13 @@ function handleKeyDown (event) {
         lighting = !lighting
       }
 
-      if (event.keyCode == 33) // 按键pageup
-      {
-        pointlight = [pointlight[0], pointlight[1] + 0.1, pointlight[2]]
-      } else {
-      }
-      if (event.keyCode == 34) // pagedown
-      {
-        pointlight = [pointlight[0], pointlight[1] - 0.1, pointlight[2]]
-      } else {
-      }
-      if (event.keyCode == 38) // up
-      {
-        pointlight = [pointlight[0] + 0.1, pointlight[1], pointlight[2]]
-      } else {
-      }
-      if (event.keyCode == 40) // down
-      {
-        pointlight = [pointlight[0] - 0.1, pointlight[1], pointlight[2]]
-      } else {
-      }
-      if (event.keyCode == 37) // left
-      {
-        pointlight = [pointlight[0], pointlight[1], pointlight[2] + 0.1]
-      } else {
-      }
-      if (event.keyCode == 39) // right
-      {
-        pointlight = [pointlight[0], pointlight[1], pointlight[2] - 0.1]
-      } else {
-      }
+      // 测试模式方向键改动第一盏灯具位置（光源跟随灯具）
+      if (event.keyCode == 33) offsetFirstLamp(0, 0.1, 0)
+      if (event.keyCode == 34) offsetFirstLamp(0, -0.1, 0)
+      if (event.keyCode == 38) offsetFirstLamp(0.1, 0, 0)
+      if (event.keyCode == 40) offsetFirstLamp(-0.1, 0, 0)
+      if (event.keyCode == 37) offsetFirstLamp(0, 0, 0.1)
+      if (event.keyCode == 39) offsetFirstLamp(0, 0, -0.1)
     }
   }
 }
@@ -260,36 +244,27 @@ function handleKeys () {
     jumping = 0
   }
 
-  if (currentlyPressedKeys[65] && viewstyle) {
-    // Left cursor key or A
-    yawRate = 0.12
-    if (currentlyPressedKeys[16]) yawRate += 0.1
-  } else if (currentlyPressedKeys[68] && viewstyle) {
-    // Right cursor key or D
-    yawRate = -0.12
-    if (currentlyPressedKeys[16]) yawRate -= 0.1
-  } else {
-    yawRate = 0
-  }
+  // 转向仅用鼠标；A/D 改为左右平移（原 Q/E）
+  yawRate = 0
 
   if (currentlyPressedKeys[87]) {
-    // Up cursor key or W
+    // W 前进
     speed = walkSpeed
     if (currentlyPressedKeys[16]) speed += walkSpeedBoost
   } else if (currentlyPressedKeys[83]) {
-    // Down cursor key
+    // S 后退
     speed = -walkSpeed
     if (currentlyPressedKeys[16]) speed -= walkSpeedBoost
   } else {
     speed = 0
   }
 
-  if (currentlyPressedKeys[81] || (!viewstyle && currentlyPressedKeys[65])) {
-    // Q
+  if (currentlyPressedKeys[65]) {
+    // A 左移
     speed2 = walkSpeed
     if (currentlyPressedKeys[16]) speed2 += walkSpeedBoost
-  } else if (currentlyPressedKeys[69] || (!viewstyle && currentlyPressedKeys[68])) {
-    // E
+  } else if (currentlyPressedKeys[68]) {
+    // D 右移
     speed2 = -walkSpeed
     if (currentlyPressedKeys[16]) speed2 -= walkSpeedBoost
   } else {
@@ -298,41 +273,22 @@ function handleKeys () {
 }
 
 function handleMouseMove (event) {
-  if (mouseDown[selectedi][selectedj] && leftkey) {
-    lagelapsedtozero()
-    // 按鼠标射线与物体高度平面求交，使物体跟手
-    if (!isViewPointerLocked()) {
-      // 刚退出指针锁定时，先用真实光标重算抓取点，避免瞬移
-      if (dragPendingRecenter) {
-        beginDragGrab(event, false)
-        dragPendingRecenter = false
-        return
-      }
-      dragSelectedToMouse(event)
-    } else {
-      // 锁定指针时仍用相对位移（无绝对光标）
-      var scale = 0.02
-      var mx = event.movementX || event.mozMovementX || 0
-      var my = event.movementY || event.mozMovementY || 0
-      mat4.translate(translateMatrix[selectedi][selectedj], [
-        mx * scale * Math.cos(-degToRad(yaw)),
-        0,
-        mx * scale * Math.sin(-degToRad(yaw))
-      ])
-      // 前后移动：结合视角朝向
-      mat4.translate(translateMatrix[selectedi][selectedj], [
-        -my * scale * Math.sin(degToRad(yaw)),
-        0,
-        -my * scale * Math.cos(degToRad(yaw))
-      ])
-    }
+  // 只允许拖拽 XYZ 轴箭头移动物体，避免整物体跟手瞬移
+  if (gizmoDragAxis) {
+    updateGizmoDrag(event)
     return
   }
 
   // 游戏式鼠标视角：指针锁定后用相对位移转向
   if (isViewPointerLocked()) {
-    var lookX = event.movementX || event.mozMovementX || 0
-    var lookY = event.movementY || event.mozMovementY || 0
+    if (ignoreLookFrames > 0) {
+      ignoreLookFrames--
+      return
+    }
+    var lookX = (typeof event.movementX === 'number') ? event.movementX
+      : (typeof event.mozMovementX === 'number' ? event.mozMovementX : 0)
+    var lookY = (typeof event.movementY === 'number') ? event.movementY
+      : (typeof event.mozMovementY === 'number' ? event.mozMovementY : 0)
     if (lookX !== 0 || lookY !== 0) applyMouseLook(lookX, lookY)
   }
 }
@@ -352,37 +308,41 @@ function handleMouseDown (event) {
     lastMouseY = norm[1]
   }
 
-  if (!mouseDown[selectedi][selectedj] || (ControlMode == 1) || (event.button == 2)) {
-    if (event.button == 2) {
-      mouseDown[selectedi][selectedj] = false
-      leftkey = 0
-    }
+  if (event.button == 2) {
+    endGizmoDrag()
     ThingsOnClick(event)
     ThingsOnRightClick(event)
+    return
+  }
 
-    if (event.button == 0) {
-      if (mouseDown[selectedi][selectedj] && leftkey) {
-        // 选中物体时退出锁定，方便拖拽编辑；只记录抓取偏移，不瞬移
-        exitViewPointerLock()
-        beginDragGrab(event, pickingFromCenter)
-        dragPendingRecenter = pickingFromCenter
-      } else if (viewstyle) {
-        // 点空地进入游戏视角
-        requestViewPointerLock()
-      }
+  if (event.button != 0) return
+
+  // 已选中时优先点选坐标轴
+  if (isObjectSelected() && !pickingFromCenter) {
+    var axis = pickGizmoAxis(lastMouseX, lastMouseY)
+    if (axis) {
+      exitViewPointerLock()
+      beginGizmoDrag(axis, event)
+      return
     }
-  } else {
-    mouseDown[selectedi][selectedj] = false
-    leftkey = 0
-    dragPendingRecenter = false
+  }
+
+  // 重新点选物体；点空处则取消选中
+  clearObjectSelection()
+  ThingsOnClick(event)
+
+  if (isObjectSelected()) {
+    exitViewPointerLock()
+  } else if (viewstyle) {
+    requestViewPointerLock()
   }
 }
 
 function handleMouseUp (event) {
+  endGizmoDrag()
+  // ControlMode=1 时抬起即取消选中；否则保留选中以便继续拖轴
   if (ControlMode == 1) {
-    mouseDown[selectedi][selectedj] = false
-    leftkey = 0
-    dragPendingRecenter = false
+    clearObjectSelection()
   }
 }
 
@@ -412,6 +372,10 @@ function handleContextMenu (event) {
 
 function initPointerLockControls () {
   var onLockChange = function () {
+    if (isViewPointerLocked()) {
+      // 锁定瞬间的首帧 movement 常异常偏大，跳过几帧
+      ignoreLookFrames = 2
+    }
     updatePointerLockUI()
   }
   document.addEventListener('pointerlockchange', onLockChange, false)

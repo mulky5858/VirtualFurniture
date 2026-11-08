@@ -94,32 +94,38 @@ function drawLightMarker () {
   if (!testmode) return
   if (!lightMarkerReady) initLightMarker()
   if (!lightMarkerReady) return
-
-  mvPushMatrix()
-  mat4.translate(mvMatrix, pointlight)
+  if (!sceneLights || sceneLights.length === 0) return
 
   gl.uniform1i(shaderProgram.useLightingUniform, 0)
   gl.uniform1i(shaderProgram.useTexturesUniform, 1)
+  if (typeof bindShadowUniforms === 'function') bindShadowUniforms(false)
 
   gl.activeTexture(gl.TEXTURE0)
   gl.bindTexture(gl.TEXTURE_2D, lightMarkerTexture)
   gl.uniform1i(shaderProgram.samplerUniform, 0)
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, lightMarkerPositionBuffer)
-  gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, lightMarkerPositionBuffer.itemSize, gl.FLOAT, false, 0, 0)
+  for (var i = 0; i < sceneLights.length; i++) {
+    mvPushMatrix()
+    mat4.translate(mvMatrix, sceneLights[i].pos || sceneLights[i])
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, lightMarkerNormalBuffer)
-  gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute, lightMarkerNormalBuffer.itemSize, gl.FLOAT, false, 0, 0)
+    gl.bindBuffer(gl.ARRAY_BUFFER, lightMarkerPositionBuffer)
+    gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, lightMarkerPositionBuffer.itemSize, gl.FLOAT, false, 0, 0)
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, lightMarkerTexCoordBuffer)
-  gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, lightMarkerTexCoordBuffer.itemSize, gl.FLOAT, false, 0, 0)
+    gl.bindBuffer(gl.ARRAY_BUFFER, lightMarkerNormalBuffer)
+    gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute, lightMarkerNormalBuffer.itemSize, gl.FLOAT, false, 0, 0)
 
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, lightMarkerIndexBuffer)
-  setMatrixUniforms()
-  gl.drawElements(gl.TRIANGLES, lightMarkerIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0)
+    gl.bindBuffer(gl.ARRAY_BUFFER, lightMarkerTexCoordBuffer)
+    gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, lightMarkerTexCoordBuffer.itemSize, gl.FLOAT, false, 0, 0)
 
-  mvPopMatrix()
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, lightMarkerIndexBuffer)
+    setMatrixUniforms()
+    gl.drawElements(gl.TRIANGLES, lightMarkerIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0)
+
+    mvPopMatrix()
+  }
+
   gl.uniform1i(shaderProgram.useLightingUniform, lighting ? 1 : 0)
+  if (typeof bindShadowUniforms === 'function') bindShadowUniforms(!!(lighting && sceneLights.length))
 }
 
 function clicked (num) {

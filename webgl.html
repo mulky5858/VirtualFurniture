@@ -58,14 +58,13 @@
         var translateWallTexture = 0;
         var translateFloorTexture = 0;
         var translateDoorTexture = 0;
-        var pointlight = [0, 2.3, 0];
-        //var pointlight2 = [0, 2.4, 0];
-        // pointlight为初始点光源的坐标，这个坐标请以实际为值（与其他不同）
+        var pointlight = [0, 2.0, 0];
+        // pointlight 仅作兼容/阴影主灯缓存，实际光源由场景中的灯具收集
         var newpointlight = [0,0,0];
         
         var lighting = 1;
         //是否开启灯光
-        var brightness = 0.8;
+        var brightness = 0.85;
         //点光源亮度
     
         var mvThings = Array();
@@ -83,6 +82,8 @@
         //记录每个物体的贴图
         var translateScale =Array();
         //记录每个物的放大倍数
+        var lightIntensity = Array();
+        //记录灯具光照强度
         var rotateAngle = Array();
         //记录每个物体旋转的角度
         var flagThings =Array();
@@ -145,10 +146,12 @@
         <script type="text/javascript" src="js/source/cancel.js"></script>
         <script type="text/javascript" src="js/source/RightKeyMenu.js"></script>
         <script type="text/javascript" src="js/source/control.js"></script>
+        <script type="text/javascript" src="js/source/gizmo.js"></script>
         <script type="text/javascript" src="js/source/testmode.js"></script>
         <script type="text/javascript" src="js/source/drawSceneOnTVScreen.js"></script>
         <script type="text/javascript" src="js/source/drawroom.js"></script>
         <script type="text/javascript" src="js/source/shadow.js"></script>
+        <script type="text/javascript" src="js/source/lights.js"></script>
         <script type="text/javascript" src="js/source/draw.js"></script>
         <script type="text/javascript" src="js/source/drawthings.js"></script>
         <script type="text/javascript" src="js/source/collisionDetection.js"></script>
@@ -237,6 +240,9 @@
             uniform vec3 uAmbientColor;
             uniform vec3 uPointLightingLocation;
             uniform vec3 uPointLightingColor;
+            uniform int uLightCount;
+            uniform vec3 uPointLightingLocations[8];
+            uniform vec3 uPointLightingColors[8];
         
             uniform sampler2D uSampler;
             uniform samplerCube uShadowMap;
@@ -294,13 +300,20 @@
                 if (!uUseLighting) {
                     lightWeighting = vec3(1.0, 1.0, 1.0);
                 } else {
-                    vec3 toLight = uPointLightingLocation - vPosition.xyz;
-                    float dist = length(toLight);
-                    vec3 lightDirection = toLight / max(dist, 0.0001);
-                    float diffuse = max(dot(normalize(vTransformedNormal), lightDirection), 0.0);
-                    float attenuation = 1.0 / (1.0 + 0.06 * dist * dist);
-                    float shadow = calcShadow(vPosition);
-                    lightWeighting = uAmbientColor + uPointLightingColor * diffuse * attenuation * shadow;
+                    lightWeighting = uAmbientColor;
+                    vec3 nrm = normalize(vTransformedNormal);
+                    for (int i = 0; i < 8; i++) {
+                        if (i < uLightCount) {
+                            vec3 toLight = uPointLightingLocations[i] - vPosition.xyz;
+                            float dist = length(toLight);
+                            vec3 lightDirection = toLight / max(dist, 0.0001);
+                            float diffuse = max(dot(nrm, lightDirection), 0.0);
+                            float attenuation = 1.0 / (1.0 + 0.06 * dist * dist);
+                            // 阴影仅由第一盏灯投射，其余灯只贡献漫反射
+                            float shadow = (i == 0) ? calcShadow(vPosition) : 1.0;
+                            lightWeighting += uPointLightingColors[i] * diffuse * attenuation * shadow;
+                        }
+                    }
                 }
         
                 vec4 fragmentColor;
@@ -877,6 +890,29 @@
 
 
 
+        <div class="contextMenu" id="LamprightkeyMenu">
+            <ul>
+                <li id="item_1">
+                    <div align="center">-=物体信息=-</div>
+                </li>
+                <li id="item_2">
+                    <div align="center">-=增强光照=-</div>
+                </li>
+                <li id="item_3">
+                    <div align="center">-=减弱光照=-</div>
+                </li>
+                <li id="item_4">
+                    <div align="center">-=旋转物体=-</div>
+                </li>
+                <li id="item_5">
+                    <div align="center">-=删除物体=-</div>
+                </li>
+                <li id="item_6">
+                    <div align="center">-=撤销操作=-</div>
+                </li>
+            </ul>
+        </div>
+
         <div class="contextMenu" id="DoorrightkeyMenu">
             <ul>
                 <li id="item_1">
@@ -942,7 +978,7 @@
 
         <div id="caption" align="center" style="position: absolute;  top: 605;width:1000; height:30; display:none; color:#FFF ">
             <div id="tips" style="font-size: 10px">
-                Tips: 点击画面进入鼠标视角（类游戏），ESC 退出。WASD 移动，QE 平移，Shift 加速。选中物品后可用 T/G 缩放。
+                Tips: 点击画面进入鼠标视角，ESC 退出。WASD 移动。选中后拖拽红/绿/蓝箭头沿 XYZ 移动，T/G 缩放。
             </div>
             <img src="icons/html5.png" /> &nbsp;
             <img src="icons/webgl.gif" />

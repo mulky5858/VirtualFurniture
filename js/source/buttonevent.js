@@ -64,6 +64,7 @@ function creatNewThings (num) {
         translateVector[num][numThings[num]] = [temp[0], temp[1] + 0.5, temp[2]]
       }
       flagThings[num][numThings[num]] = 1
+      lightIntensity[num][numThings[num]] = (typeof brightness === 'number') ? brightness : 0.85
     }else {
       alert('无法再添加更多的此种物品。')
     }

@@ -2,7 +2,55 @@ function ThingsOnRightClick (event) {
   if (event.button == 2) {
     leftkey = 0
     if (mouseDown[selectedi][selectedj]) {
-      if (selectedi == 2 || selectedi == 6 || selectedi == 7 || selectedi == 11
+      if (selectedi == 0 || selectedi == 15) {
+        $('#view').contextMenu('LamprightkeyMenu',
+          {
+            menuStyle: {
+              border: '2px solid #000'
+            },
+            itemStyle: {
+              fontFamily: 'verdana',
+              backgroundColor: 'white',
+              color: 'black',
+              border: 'none',
+              padding: '3px'
+            },
+            itemHoverStyle: {
+              color: 'white',
+              backgroundColor: 'black',
+              border: 'none'
+            },
+            bindings: {
+              'item_1': function (t) {
+                information(selectedi)
+              },
+              'item_2': function (t) {
+                adjustSelectedLampIntensity(LIGHT_INTENSITY_STEP)
+              },
+              'item_3': function (t) {
+                adjustSelectedLampIntensity(-LIGHT_INTENSITY_STEP)
+              },
+              'item_4': function (t) {
+                canceltype = 3
+                old = rotateAngle[selectedi][selectedj]
+                oldi = selectedi
+                oldj = selectedj
+                CancelPush()
+                rotateAngle[selectedi][selectedj] += 90
+              },
+              'item_5': function (t) {
+                canceltype = 4
+                oldi = selectedi
+                oldj = selectedj
+                CancelPush()
+                flagThings[selectedi][selectedj] = 0
+              },
+              'item_6': function (t) {
+                cancel()
+              }
+            }
+          })
+      } else if (selectedi == 2 || selectedi == 6 || selectedi == 7 || selectedi == 11
         || selectedi == 12 || selectedi == 13 || selectedi == 17 || selectedi == 18
         || selectedi == 23 || selectedi == 29 || selectedi == 33 || selectedi == 34
         || selectedi == 5 || selectedi == 38) {

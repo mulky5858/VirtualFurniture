@@ -10,8 +10,6 @@ function drawThings (num, i) {
     gl.bindTexture(gl.TEXTURE_2D, ThingsTexture[num][translateTexture[num][i]])
   }
 
-  if (num == 37) gl.uniform1i(shaderProgram.useLightingUniform, 0)
-
   gl.bindBuffer(gl.ARRAY_BUFFER, ThingsVertexPositionBuffer[num].data)
   gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, ThingsVertexPositionBuffer[num].itemSize, gl.FLOAT, false, 0, 0)
 
@@ -24,11 +22,15 @@ function drawThings (num, i) {
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ThingsVertexIndexBuffer[num].data)
   setMatrixUniforms()
   gl.drawElements(gl.TRIANGLES, ThingsVertexIndexBuffer[num].numItems, gl.UNSIGNED_SHORT, 0)
-
-  if (num == 37) gl.uniform1i(shaderProgram.useLightingUniform, lighting ? 1 : 0)
 }
 
 function draw (num) {
+  // 相框贴墙：阴影贴图易把画面压黑；略提高环境光并临时关闭阴影接收
+  var framePass = (num == 37)
+  if (framePass) {
+    gl.uniform3f(shaderProgram.ambientColorUniform, 0.45, 0.45, 0.45)
+    if (typeof bindShadowUniforms === 'function') bindShadowUniforms(false)
+  }
   for (var i = 1; i <= numThings[num]; i++) {
     if (flagThings[num][i]) {
       mvPushMatrix()
@@ -37,6 +39,12 @@ function draw (num) {
       drawThings(num, i)
       mvPopMatrix()
       if (num == 2 && showTV[i] == 1) drawTV(i, TVchannel[i])
+    }
+  }
+  if (framePass) {
+    gl.uniform3f(shaderProgram.ambientColorUniform, 0.12, 0.12, 0.12)
+    if (typeof bindShadowUniforms === 'function') {
+      bindShadowUniforms(!!(lighting && typeof sceneLights !== 'undefined' && sceneLights.length > 0))
     }
   }
 }
@@ -81,8 +89,6 @@ function drawThings2 (num) {
     gl2.bindTexture(gl2.TEXTURE_2D, ThingsTexture2[num][gl2_translateTexture])
   }
 
-  if (num == 37) gl2.uniform1i(shaderProgram2.useLightingUniform, 0)
-
   gl2.bindBuffer(gl2.ARRAY_BUFFER, ThingsVertexPositionBuffer2[num].data)
   gl2.vertexAttribPointer(shaderProgram2.vertexPositionAttribute, ThingsVertexPositionBuffer2[num].itemSize, gl2.FLOAT, false, 0, 0)
 
@@ -95,6 +101,4 @@ function drawThings2 (num) {
   gl2.bindBuffer(gl2.ELEMENT_ARRAY_BUFFER, ThingsVertexIndexBuffer2[num].data)
   setMatrixUniforms2()
   gl2.drawElements(gl2.TRIANGLES, ThingsVertexIndexBuffer2[num].numItems, gl2.UNSIGNED_SHORT, 0)
-
-  if (num == 37) gl2.uniform1i(shaderProgram2.useLightingUniform, lighting ? 1 : 0)
 }

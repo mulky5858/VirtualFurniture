@@ -65,6 +65,13 @@ function createProgram (ngl, fragmentShaderID, vertexShaderID) {
 
   program.pointLightingLocationUniform = ngl.getUniformLocation(program, 'uPointLightingLocation')
   program.pointLightingColorUniform = ngl.getUniformLocation(program, 'uPointLightingColor')
+  program.lightCountUniform = ngl.getUniformLocation(program, 'uLightCount')
+  program.pointLightingLocationUniforms = []
+  program.pointLightingColorUniforms = []
+  for (var li = 0; li < 8; li++) {
+    program.pointLightingLocationUniforms[li] = ngl.getUniformLocation(program, 'uPointLightingLocations[' + li + ']')
+    program.pointLightingColorUniforms[li] = ngl.getUniformLocation(program, 'uPointLightingColors[' + li + ']')
+  }
 
   return program
 }

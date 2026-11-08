@@ -8,8 +8,8 @@ function drawScene () {
   gl.uniform1i(shaderProgram.useLightingUniform, 0)
   gl.uniform1i(shaderProgram.useTexturesUniform, 1)
 
-  gl.uniform3f(shaderProgram.ambientColorUniform, 0.32, 0.32, 0.32)
-  gl.uniform3f(shaderProgram.pointLightingColorUniform, brightness, brightness, brightness)
+  // 无灯具时只靠微弱环境光；有灯时由灯具点光照明
+  gl.uniform3f(shaderProgram.ambientColorUniform, 0.12, 0.12, 0.12)
 
   for (var k = 1; k <= numofTVchannel; k++) {
     gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer[k])
@@ -28,40 +28,49 @@ function drawScene () {
   mat4.rotate(mvMatrix, degToRad(-yaw), [0, 1, 0])
   mat4.translate(mvMatrix, [-xPos, -yPos, -zPos])
 
+  // 按场景中的灯具收集点光源（无默认固定光）
+  collectSceneLights()
+
   // 保存相机视图，供阴影矩阵 = lightPV * inverse(cameraView)
   var cameraView = mat4.create()
   mat4.set(mvMatrix, cameraView)
 
-  // 光照开启时先从光源渲染深度阴影图
-  if (lighting) {
+  var hasLamp = sceneLights.length > 0
+  // 有灯且光照开启时，用第一盏灯做阴影贴图
+  if (lighting && hasLamp) {
     drawShadowMap(cameraView)
     mat4.set(cameraView, mvMatrix)
     mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix)
     gl.useProgram(shaderProgram)
     gl.uniform1i(shaderProgram.samplerUniform, 0)
     gl.uniform1i(shaderProgram.useTexturesUniform, 1)
-    gl.uniform3f(shaderProgram.ambientColorUniform, 0.32, 0.32, 0.32)
-    gl.uniform3f(shaderProgram.pointLightingColorUniform, brightness, brightness, brightness)
+    gl.uniform3f(shaderProgram.ambientColorUniform, 0.12, 0.12, 0.12)
   }
 
-  // 必须在相机矩阵建立后再变换光源，得到与顶点一致的眼空间坐标
-  mat4.multiplyVec3(mvMatrix, pointlight, newpointlight)
-  gl.uniform3f(shaderProgram.pointLightingLocationUniform, newpointlight[0], newpointlight[1], newpointlight[2])
+  bindSceneLightsEyeSpace(mvMatrix)
 
-  if (testmode) testoutput = '碰撞体积关闭。 光源坐标： ' + pointlight[0].toFixed(3) + ',' + pointlight[1].toFixed(3) + ',' + pointlight[2].toFixed(3) + ' ' + '人物坐标： ' + xPos.toFixed(3) + ',' + yPos.toFixed(3) + ',' + zPos.toFixed(3) + ' 左右转动角度： ' + yaw.toFixed(3) + ' 上下转动角度： ' + pitch.toFixed(3)
+  if (testmode) {
+    testoutput = '碰撞体积关闭。 灯具光源数： ' + sceneLights.length +
+      (hasLamp ? (' 主灯： ' + pointlight[0].toFixed(3) + ',' + pointlight[1].toFixed(3) + ',' + pointlight[2].toFixed(3)) : '') +
+      ' 人物坐标： ' + xPos.toFixed(3) + ',' + yPos.toFixed(3) + ',' + zPos.toFixed(3) +
+      ' 左右转动角度： ' + yaw.toFixed(3) + ' 上下转动角度： ' + pitch.toFixed(3)
+  }
 
   if (testmode) document.getElementById('test3').textContent = '点选的物品坐标为： ' + coordinate(selectedi, selectedj)
   else document.getElementById('test3').textContent = ''
 
   // 房间与家具统一受光照控制
   gl.uniform1i(shaderProgram.useLightingUniform, lighting ? 1 : 0)
-  bindShadowUniforms(!!lighting)
+  bindShadowUniforms(!!(lighting && hasLamp))
 
   drawroom()
 
   for (var i = 0; i <= NumberOfObjects - 1; i++) {
     draw(i)
   }
+
+  // 选中物体时绘制 XYZ 位移箭头
+  drawGizmo()
 
   // 测试模式：红色球体标出点光源位置
   drawLightMarker()

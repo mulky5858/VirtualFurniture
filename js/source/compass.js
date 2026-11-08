@@ -47,18 +47,18 @@ function undoViewgodown () {
 }
 
 function doViewgoleft () {
-  currentlyPressedKeys[81] = true
+  currentlyPressedKeys[65] = true
 }
 function undoViewgoleft () {
-  currentlyPressedKeys[81] = false
+  currentlyPressedKeys[65] = false
 }
 
 function doViewgoright () {
-  currentlyPressedKeys[69] = true
+  currentlyPressedKeys[68] = true
 }
 
 function undoViewgoright () {
-  currentlyPressedKeys[69] = false
+  currentlyPressedKeys[68] = false
 }
 
 function doViewturnleft () {

@@ -7,6 +7,8 @@ var lastZPos = 0
 var change = Array()
 var onloadTVtexture = Array()
 var duration = 0
+// 单帧时间上限，避免切回标签页/卡顿后镜头瞬移
+var MAX_FRAME_ELAPSED = 50
 
 for (var i = 1; i <= numofTVchannel; i++) {
   change[i] = 1
@@ -17,46 +19,53 @@ function animate () {
 
   if (lastTime != 0) {
     var elapsed = timeNow - lastTime
+    if (elapsed > MAX_FRAME_ELAPSED) elapsed = MAX_FRAME_ELAPSED
+    if (elapsed < 0) elapsed = 0
+
+    var moving = (speed != 0) || (speed2 != 0)
 
     if (speed != 0) {
       lastXPos = xPos
       lastZPos = zPos
 
-      xPos -= Math.sin(degToRad(yaw)) * speed * 15
-      zPos -= Math.cos(degToRad(yaw)) * speed * 15
+      xPos -= Math.sin(degToRad(yaw)) * speed * elapsed
+      zPos -= Math.cos(degToRad(yaw)) * speed * elapsed
 
       cameraCD()
-
-      if (viewstyle) {
-        joggingAngle += 15 * 0.6; // 0.6 "fiddle factor" - makes it feel more realistic :-)
-        yPos = Math.sin(degToRad(joggingAngle)) / 20 + viewheight
-      }
     }
 
     if (speed2 != 0) {
       lastXPos = xPos
       lastZPos = zPos
 
-      xPos -= Math.sin(degToRad(90 + yaw)) * speed2 * 15
-      zPos -= Math.cos(degToRad(90 + yaw)) * speed2 * 15
+      xPos -= Math.sin(degToRad(90 + yaw)) * speed2 * elapsed
+      zPos -= Math.cos(degToRad(90 + yaw)) * speed2 * elapsed
 
       cameraCD()
+    }
 
-      if (viewstyle) {
-        joggingAngle += 15 * 0.6; // 0.6 "fiddle factor" - makes it feel more realistic :-)
+    // 行走晃动每帧只更新一次，避免 WASD 斜走时双重叠加造成跳变
+    if (viewstyle) {
+      if (moving || jumping) {
+        joggingAngle += elapsed * 0.6
+        if (joggingAngle > 360) joggingAngle -= 360
         yPos = Math.sin(degToRad(joggingAngle)) / 20 + viewheight
+      } else {
+        // 停下后平滑回落到正常视高，避免停在峰值突然复位
+        var bob = yPos - viewheight
+        if (Math.abs(bob) > 0.0005) {
+          yPos -= bob * Math.min(1, elapsed * 0.02)
+        } else {
+          yPos = viewheight
+          joggingAngle = 0
+        }
       }
     }
 
-    yaw += yawRate * 15 + yawRate2 * 10
+    yaw += yawRate * elapsed + yawRate2 * elapsed * (10 / 15)
 
-    if (pitch + pitchRate * 15 <= 75 && pitch + pitchRate * 15 >= -75) {
-      pitch += pitchRate * 15
-
-      if (jumping && viewstyle) {
-        joggingAngle += 15 * 0.6; // 0.6 "fiddle factor" - makes it feel more realistic :-)
-        yPos = Math.sin(degToRad(joggingAngle)) / 20 + viewheight
-      }
+    if (pitch + pitchRate * elapsed <= 75 && pitch + pitchRate * elapsed >= -75) {
+      pitch += pitchRate * elapsed
     }
 
     if (sumelapsed >= (1000 / 8)) {

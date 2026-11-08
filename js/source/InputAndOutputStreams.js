@@ -18,6 +18,7 @@ function initialize () {
     translateVector[i] = Array()
     translateTexture[i] = Array()
     translateScale[i] = Array()
+    lightIntensity[i] = Array()
     rotateAngle[i] = Array()
     flagThings[i] = Array()
   }
@@ -45,9 +46,10 @@ function initialize () {
       translateVector[i][j] = [0, 0, 0]
       translateTexture[i][j] = 0
       translateScale[i][j] = DefaultScale(i)
+      lightIntensity[i][j] = (typeof brightness === 'number') ? brightness : 0.85
       rotateAngle[i][j] = 0
       flagThings[i][j] = 0
-  }
+    }
 
   // 数组初始化
 
@@ -131,9 +133,12 @@ function doLoadObj (text) {
       flagThings[number][numThings[number]] = 1
       translateTexture[number][numThings[number]] = parseInt(array[6])
       translateScale[number][numThings[number]] = [parseFloat(array[7]), parseFloat(array[7]), parseFloat(array[7])]
+      lightIntensity[number][numThings[number]] = (typeof brightness === 'number') ? brightness : 0.85
       if (number == 2) {
         showTV[numThings[number]] = parseInt(array[8])
         TVchannel[numThings[number]] = parseInt(array[9])
+      } else if ((number == 0 || number == 15) && array.length > 8 && array[8] !== '' && !isNaN(parseFloat(array[8]))) {
+        lightIntensity[number][numThings[number]] = parseFloat(array[8])
       }
     }
   }
@@ -187,6 +192,11 @@ function outputstreamdata () {
     for (var j = 0; j <= MaxNumberOfObjects; j++) {
       if (flagThings[i][j]) {
         str = str + '# ' + i + ' ' + coordinate(i, j)[0] + ' ' + coordinate(i, j)[1] + ' ' + coordinate(i, j)[2] + ' ' + rotateAngle[i][j] + ' ' + translateTexture[i][j] + ' ' + translateScale[i][j][0].toFixed(3)
+        if (i == 0 || i == 15) {
+          var li = lightIntensity[i][j]
+          if (typeof li !== 'number') li = (typeof brightness === 'number') ? brightness : 0.85
+          str = str + ' ' + li.toFixed(3)
+        }
         if (i == 2) str = str + ' ' + showTV[j] + ' ' + TVchannel[j]
         str = str + '\r\n'
         count++

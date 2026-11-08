@@ -68,9 +68,9 @@ function initShadowMap () {
 
 function drawShadowCasters () {
   drawroom()
-  // 跳过吊灯等贴近光源的物体，避免近平面深度糊住
+  // 跳过灯具本身，避免近平面深度糊住
   for (var i = 0; i <= NumberOfObjects - 1; i++) {
-    if (i === 0) continue
+    if (typeof isLampType === 'function' && isLampType(i)) continue
     draw(i)
   }
 }

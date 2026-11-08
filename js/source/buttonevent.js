@@ -316,6 +316,18 @@ $(document).ready(function () {
     lagelapsedtozero()
     inputstream('input/default2.txt')
   })
+  $('#buttonDefault3').click(function () {
+    lagelapsedtozero()
+    inputstream('input/default3.txt')
+  })
+  $('#buttonDefault4').click(function () {
+    lagelapsedtozero()
+    inputstream('input/default4.txt')
+  })
+  $('#buttonDefault5').click(function () {
+    lagelapsedtozero()
+    inputstream('input/default5.txt')
+  })
 
   $('#buttonOutput').click(function () {
     closemap()

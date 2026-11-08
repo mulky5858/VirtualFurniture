@@ -81,6 +81,33 @@ html, body {
 	background-image: url(../icons/default2.png);
 	cursor: pointer;
 }
+#buttonDefault3
+{
+	height: 64px;
+	width: 64px;
+	position: absolute;
+	left:210;
+	background-image: url(../icons/default3.png);
+	cursor: pointer;
+}
+#buttonDefault4
+{
+	height: 64px;
+	width: 64px;
+	position: absolute;
+	left:280;
+	background-image: url(../icons/default4.png);
+	cursor: pointer;
+}
+#buttonDefault5
+{
+	height: 64px;
+	width: 64px;
+	position: absolute;
+	left:350;
+	background-image: url(../icons/default5.png);
+	cursor: pointer;
+}
 #buttonOutput
 {
 	height: 64px;

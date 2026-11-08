@@ -20,8 +20,11 @@ function setMatrixUniforms () {
   gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix)
 
   var normalMatrix = mat3.create()
-  mat4.toInverseMat3(mvMatrix, normalMatrix)
-  mat3.transpose(normalMatrix)
+  if (!mat4.toInverseMat3(mvMatrix, normalMatrix)) {
+    mat3.identity(normalMatrix)
+  } else {
+    mat3.transpose(normalMatrix)
+  }
   gl.uniformMatrix3fv(shaderProgram.nMatrixUniform, false, normalMatrix)
 }
 
@@ -47,7 +50,10 @@ function setMatrixUniforms2 () {
   gl2.uniformMatrix4fv(shaderProgram2.mvMatrixUniform, false, mvMatrix2)
 
   var normalMatrix = mat3.create()
-  mat4.toInverseMat3(mvMatrix2, normalMatrix)
-  mat3.transpose(normalMatrix)
+  if (!mat4.toInverseMat3(mvMatrix2, normalMatrix)) {
+    mat3.identity(normalMatrix)
+  } else {
+    mat3.transpose(normalMatrix)
+  }
   gl2.uniformMatrix3fv(shaderProgram2.nMatrixUniform, false, normalMatrix)
 }

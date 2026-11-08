@@ -10,7 +10,7 @@ function drawThings (num, i) {
     gl.bindTexture(gl.TEXTURE_2D, ThingsTexture[num][translateTexture[num][i]])
   }
 
-  if (num == 37) gl.uniform1f(shaderProgram.useLightingUniform, 0)
+  if (num == 37) gl.uniform1i(shaderProgram.useLightingUniform, 0)
 
   gl.bindBuffer(gl.ARRAY_BUFFER, ThingsVertexPositionBuffer[num].data)
   gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, ThingsVertexPositionBuffer[num].itemSize, gl.FLOAT, false, 0, 0)
@@ -25,7 +25,7 @@ function drawThings (num, i) {
   setMatrixUniforms()
   gl.drawElements(gl.TRIANGLES, ThingsVertexIndexBuffer[num].numItems, gl.UNSIGNED_SHORT, 0)
 
-  if (num == 37) gl.uniform1f(shaderProgram.useLightingUniform, lighting)
+  if (num == 37) gl.uniform1i(shaderProgram.useLightingUniform, lighting ? 1 : 0)
 }
 
 function draw (num) {
@@ -42,7 +42,7 @@ function draw (num) {
 }
 
 function drawTV (i, channel) {
-  gl.uniform1f(shaderProgram.useLightingUniform, 0)
+  gl.uniform1i(shaderProgram.useLightingUniform, 0)
   mvPushMatrix()
   mat4.translate(mvMatrix, translateVector[2][i])
   mat4.translate(mvMatrix, [parseFloat(translateMatrix[2][i][12]), parseFloat(translateMatrix[2][i][13]), parseFloat(translateMatrix[2][i][14])])
@@ -62,7 +62,7 @@ function drawTV (i, channel) {
   setMatrixUniforms()
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, TVScreenVertexPositionBuffer[channel].numItems)
   mvPopMatrix()
-  gl.uniform1f(shaderProgram.useLightingUniform, lighting)
+  gl.uniform1i(shaderProgram.useLightingUniform, lighting ? 1 : 0)
 }
 
 function draw2 (num) {
@@ -81,7 +81,7 @@ function drawThings2 (num) {
     gl2.bindTexture(gl2.TEXTURE_2D, ThingsTexture2[num][gl2_translateTexture])
   }
 
-  if (num == 37) gl2.uniform1f(shaderProgram2.useLightingUniform, 0)
+  if (num == 37) gl2.uniform1i(shaderProgram2.useLightingUniform, 0)
 
   gl2.bindBuffer(gl2.ARRAY_BUFFER, ThingsVertexPositionBuffer2[num].data)
   gl2.vertexAttribPointer(shaderProgram2.vertexPositionAttribute, ThingsVertexPositionBuffer2[num].itemSize, gl2.FLOAT, false, 0, 0)
@@ -96,5 +96,5 @@ function drawThings2 (num) {
   setMatrixUniforms2()
   gl2.drawElements(gl2.TRIANGLES, ThingsVertexIndexBuffer2[num].numItems, gl2.UNSIGNED_SHORT, 0)
 
-  if (num == 37) gl2.uniform1f(shaderProgram2.useLightingUniform, lighting)
+  if (num == 37) gl2.uniform1i(shaderProgram2.useLightingUniform, lighting ? 1 : 0)
 }

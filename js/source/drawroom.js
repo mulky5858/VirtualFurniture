@@ -10,11 +10,27 @@ function drawroom () {
   rebuilddoor()
 }
 
+function bindRoomAttributes (positionBuffer, texBuffer, normalBuffer) {
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer.data)
+  gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, positionBuffer.itemSize, gl.FLOAT, false, 0, 0)
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer.data)
+  gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute, normalBuffer.itemSize, gl.FLOAT, false, 0, 0)
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, texBuffer.data)
+  gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, texBuffer.itemSize, gl.FLOAT, false, 0, 0)
+}
+
 function builddoor (j) {
   var doorHeight = 1.95
-  var DoorMatrix = '-0.55 0 0 0 0\r\n0.55 0 0 1 0\r\n0.55 ' + doorHeight + ' 0 1 1\r\n-0.55 0 0 0 0\r\n-0.55 ' + doorHeight + ' 0 0 1\r\n0.55 ' + doorHeight + ' 0 1 1\r\n'
-
-  return DoorMatrix
+  // 法线 (0,0,1)
+  return quad(
+    '-0.55 0 0',
+    '0.55 0 0',
+    '0.55 ' + doorHeight + ' 0',
+    '-0.55 ' + doorHeight + ' 0',
+    0, 0, 1, 0, 1, 1, 0, 1
+  )
 }
 function rebuilddoor () {
   for (var j = 0; j <= 50; j++) {
@@ -28,11 +44,7 @@ function rebuilddoor () {
       gl.bindTexture(gl.TEXTURE_2D, doorTexture[0])
       gl.uniform1i(shaderProgram.samplerUniform, 0)
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, doorVertexTextureCoordBuffer.data)
-      gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, doorVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0)
-
-      gl.bindBuffer(gl.ARRAY_BUFFER, doorVertexPositionBuffer.data)
-      gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, doorVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0)
+      bindRoomAttributes(doorVertexPositionBuffer, doorVertexTextureCoordBuffer, doorVertexNormalBuffer)
 
       setMatrixUniforms()
       gl.drawArrays(gl.TRIANGLES, 0, doorVertexPositionBuffer.numItems)
@@ -42,9 +54,14 @@ function rebuilddoor () {
 }
 
 function buildfloor (x, z) {
-  var FloorMatrix = '' + x + ' 0 ' + z + ' 0 0\r\n' + x + ' 0 ' + (z + 1) + ' 0 ' + FloorTextureDensity + '\r\n' + (x + 1) + ' 0 ' + (z + 1) + ' ' + FloorTextureDensity + ' ' + FloorTextureDensity + '\r\n' + x + ' 0 ' + z + ' 0 0\r\n' + (x + 1) + ' 0 ' + (z + 1) + ' ' + FloorTextureDensity + ' ' + FloorTextureDensity + '\r\n' + (x + 1) + ' 0 ' + z + ' ' + FloorTextureDensity + ' 0\r\n'
-
-  return FloorMatrix
+  // 法线 (0,1,0)，朝上
+  return quad(
+    x + ' 0 ' + z,
+    x + ' 0 ' + (z + 1),
+    (x + 1) + ' 0 ' + (z + 1),
+    (x + 1) + ' 0 ' + z,
+    0, 0, 0, FloorTextureDensity, FloorTextureDensity, FloorTextureDensity, FloorTextureDensity, 0
+  )
 }
 
 function rebuildfloor () {
@@ -56,11 +73,7 @@ function rebuildfloor () {
         gl.bindTexture(gl.TEXTURE_2D, floorTexture[translateFloorTexture])
         gl.uniform1i(shaderProgram.samplerUniform, 0)
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, floorVertexTextureCoordBuffer[i][j].data)
-        gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, floorVertexTextureCoordBuffer[i][j].itemSize, gl.FLOAT, false, 0, 0)
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, floorVertexPositionBuffer[i][j].data)
-        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, floorVertexPositionBuffer[i][j].itemSize, gl.FLOAT, false, 0, 0)
+        bindRoomAttributes(floorVertexPositionBuffer[i][j], floorVertexTextureCoordBuffer[i][j], floorVertexNormalBuffer[i][j])
 
         setMatrixUniforms()
         gl.drawArrays(gl.TRIANGLES, 0, floorVertexPositionBuffer[i][j].numItems)
@@ -70,9 +83,14 @@ function rebuildfloor () {
 }
 
 function buildceiling (x, z) {
-  var CeilingMatrix = '' + x + ' 2.43 ' + z + ' 0 0\r\n' + x + ' 2.43 ' + (z + 1) + ' 0 ' + FloorTextureDensity + '\r\n' + (x + 1) + ' 2.43 ' + (z + 1) + ' ' + FloorTextureDensity + ' ' + FloorTextureDensity + '\r\n' + x + ' 2.43 ' + z + ' 0 0\r\n' + (x + 1) + ' 2.43 ' + (z + 1) + ' ' + FloorTextureDensity + ' ' + FloorTextureDensity + '\r\n' + (x + 1) + ' 2.43 ' + z + ' ' + FloorTextureDensity + ' 0\r\n'
-
-  return CeilingMatrix
+  // 法线 (0,-1,0)，朝下对着房间
+  return quad(
+    x + ' 2.43 ' + z,
+    (x + 1) + ' 2.43 ' + z,
+    (x + 1) + ' 2.43 ' + (z + 1),
+    x + ' 2.43 ' + (z + 1),
+    0, 0, FloorTextureDensity, 0, FloorTextureDensity, FloorTextureDensity, 0, FloorTextureDensity
+  )
 }
 
 function rebuildceiling () {
@@ -85,11 +103,7 @@ function rebuildceiling () {
           gl.bindTexture(gl.TEXTURE_2D, ceilingTexture[translateCelingTexture])
           gl.uniform1i(shaderProgram.samplerUniform, 0)
 
-          gl.bindBuffer(gl.ARRAY_BUFFER, ceilingVertexTextureCoordBuffer[i][j].data)
-          gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, ceilingVertexTextureCoordBuffer[i][j].itemSize, gl.FLOAT, false, 0, 0)
-
-          gl.bindBuffer(gl.ARRAY_BUFFER, ceilingVertexPositionBuffer[i][j].data)
-          gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, ceilingVertexPositionBuffer[i][j].itemSize, gl.FLOAT, false, 0, 0)
+          bindRoomAttributes(ceilingVertexPositionBuffer[i][j], ceilingVertexTextureCoordBuffer[i][j], ceilingVertexNormalBuffer[i][j])
 
           setMatrixUniforms()
           gl.drawArrays(gl.TRIANGLES, 0, ceilingVertexPositionBuffer[i][j].numItems)
@@ -102,11 +116,7 @@ function rebuildceiling () {
           gl.bindTexture(gl.TEXTURE_2D, ceilingTexture[translateCelingTexture])
           gl.uniform1i(shaderProgram.samplerUniform, 0)
 
-          gl.bindBuffer(gl.ARRAY_BUFFER, ceilingVertexTextureCoordBuffer[i][j].data)
-          gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, ceilingVertexTextureCoordBuffer[i][j].itemSize, gl.FLOAT, false, 0, 0)
-
-          gl.bindBuffer(gl.ARRAY_BUFFER, ceilingVertexPositionBuffer[i][j].data)
-          gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, ceilingVertexPositionBuffer[i][j].itemSize, gl.FLOAT, false, 0, 0)
+          bindRoomAttributes(ceilingVertexPositionBuffer[i][j], ceilingVertexTextureCoordBuffer[i][j], ceilingVertexNormalBuffer[i][j])
 
           setMatrixUniforms()
           gl.drawArrays(gl.TRIANGLES, 0, ceilingVertexPositionBuffer[i][j].numItems)
@@ -116,10 +126,62 @@ function rebuildceiling () {
   }
 }
 
-function buildwall (x, z) {
-  var WallMatrix = '' + x + ' 0 ' + z + ' 0 0\r\n' + (x + 1) + ' 0 ' + z + ' ' + WallTextureDensity + ' 0\r\n' + (x + 1) + ' 2.43 ' + z + ' ' + WallTextureDensity + ' ' + WallTextureDensity + '\r\n' + x + ' 0 ' + z + ' 0 0\r\n' + (x + 1) + ' 2.43 ' + z + ' ' + WallTextureDensity + ' ' + WallTextureDensity + '\r\n' + x + ' 2.43 ' + z + ' 0 ' + WallTextureDensity + '\r\n' + x + ' 0 ' + z + ' 0 0\r\n' + x + ' 0 ' + (z + 1) + ' ' + WallTextureDensity + ' 0\r\n' + x + ' 2.43 ' + (z + 1) + ' ' + WallTextureDensity + ' ' + WallTextureDensity + '\r\n' + x + ' 0 ' + z + ' 0 0\r\n' + x + ' 2.43 ' + z + ' 0 ' + WallTextureDensity + '\r\n' + x + ' 2.43 ' + (z + 1) + ' ' + WallTextureDensity + ' ' + WallTextureDensity + '\r\n' + x + ' 0 ' + (z + 1) + ' 0 0\r\n' + (x + 1) + ' 0 ' + (z + 1) + ' ' + WallTextureDensity + ' 0\r\n' + (x + 1) + ' 2.43 ' + (z + 1) + ' ' + WallTextureDensity + ' ' + WallTextureDensity + '\r\n' + x + ' 0 ' + (z + 1) + ' 0 0\r\n' + (x + 1) + ' 2.43 ' + (z + 1) + ' ' + WallTextureDensity + ' ' + WallTextureDensity + '\r\n' + x + ' 2.43 ' + (z + 1) + ' 0 ' + WallTextureDensity + '\r\n' + (x + 1) + ' 0 ' + z + ' 0 0\r\n' + (x + 1) + ' 0 ' + (z + 1) + ' ' + WallTextureDensity + ' 0\r\n' + (x + 1) + ' 2.43 ' + (z + 1) + ' ' + WallTextureDensity + ' ' + WallTextureDensity + '\r\n' + (x + 1) + ' 0 ' + z + ' 0 0\r\n' + (x + 1) + ' 2.43 ' + z + ' 0 ' + WallTextureDensity + '\r\n' + (x + 1) + ' 2.43 ' + (z + 1) + ' ' + WallTextureDensity + ' ' + WallTextureDensity + '\r\n'
+function quad (a, b, c, d, ua, va, ub, vb, uc, vc, ud, vd) {
+  // 两个三角形共用绕序 a->b->c / a->c->d，保证同一面法线一致
+  return (
+    a + ' ' + ua + ' ' + va + '\r\n' +
+    b + ' ' + ub + ' ' + vb + '\r\n' +
+    c + ' ' + uc + ' ' + vc + '\r\n' +
+    a + ' ' + ua + ' ' + va + '\r\n' +
+    c + ' ' + uc + ' ' + vc + '\r\n' +
+    d + ' ' + ud + ' ' + vd + '\r\n'
+  )
+}
 
-  return WallMatrix
+function buildwall (x, z) {
+  var y0 = 0
+  var y1 = 2.43
+  var x0 = x
+  var x1 = x + 1
+  var z0 = z
+  var z1 = z + 1
+  var t = WallTextureDensity
+
+  // 四个侧面，法线均朝盒子外侧
+  return (
+    // -Z 面 (z0)，法线 (0,0,-1)
+    quad(
+      x0 + ' ' + y0 + ' ' + z0,
+      x0 + ' ' + y1 + ' ' + z0,
+      x1 + ' ' + y1 + ' ' + z0,
+      x1 + ' ' + y0 + ' ' + z0,
+      0, 0, 0, t, t, t, t, 0
+    ) +
+    // +Z 面 (z1)，法线 (0,0,1)
+    quad(
+      x0 + ' ' + y0 + ' ' + z1,
+      x1 + ' ' + y0 + ' ' + z1,
+      x1 + ' ' + y1 + ' ' + z1,
+      x0 + ' ' + y1 + ' ' + z1,
+      0, 0, t, 0, t, t, 0, t
+    ) +
+    // -X 面 (x0)，法线 (-1,0,0)
+    quad(
+      x0 + ' ' + y0 + ' ' + z0,
+      x0 + ' ' + y0 + ' ' + z1,
+      x0 + ' ' + y1 + ' ' + z1,
+      x0 + ' ' + y1 + ' ' + z0,
+      0, 0, t, 0, t, t, 0, t
+    ) +
+    // +X 面 (x1)，法线 (1,0,0)
+    quad(
+      x1 + ' ' + y0 + ' ' + z0,
+      x1 + ' ' + y1 + ' ' + z0,
+      x1 + ' ' + y1 + ' ' + z1,
+      x1 + ' ' + y0 + ' ' + z1,
+      0, 0, 0, t, t, t, t, 0
+    )
+  )
 }
 
 function rebuildwall () {
@@ -136,11 +198,7 @@ function rebuildwall () {
         gl.bindTexture(gl.TEXTURE_2D, wallTexture[translateWallTexture])
         gl.uniform1i(shaderProgram.samplerUniform, 0)
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, wallVertexTextureCoordBuffer[i][j].data)
-        gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, wallVertexTextureCoordBuffer[i][j].itemSize, gl.FLOAT, false, 0, 0)
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, wallVertexPositionBuffer[i][j].data)
-        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, wallVertexPositionBuffer[i][j].itemSize, gl.FLOAT, false, 0, 0)
+        bindRoomAttributes(wallVertexPositionBuffer[i][j], wallVertexTextureCoordBuffer[i][j], wallVertexNormalBuffer[i][j])
 
         setMatrixUniforms()
         gl.drawArrays(gl.TRIANGLES, 0, wallVertexPositionBuffer[i][j].numItems)

@@ -16,10 +16,167 @@ var selectedi = 0
 var selectedj = 1
 var leftkey = 0
 var rightkey = 0
+var dragGrabOffsetX = 0
+var dragGrabOffsetZ = 0
+var dragPendingRecenter = false
 
 var currentlyPressedKeys = {}
-var CameraFollow = 0
-// 镜头跟踪，1为开启，0为关闭
+var lookSensitivity = 0.14
+var walkSpeed = 0.0045
+var walkSpeedBoost = 0.007
+
+function isViewPointerLocked () {
+  var canvas = document.getElementById('view')
+  if (!canvas) return false
+  return document.pointerLockElement === canvas ||
+    document.mozPointerLockElement === canvas ||
+    document.webkitPointerLockElement === canvas
+}
+
+function requestViewPointerLock () {
+  var canvas = document.getElementById('view')
+  if (!canvas || isViewPointerLocked()) return
+  if (canvas.requestPointerLock) canvas.requestPointerLock()
+  else if (canvas.mozRequestPointerLock) canvas.mozRequestPointerLock()
+  else if (canvas.webkitRequestPointerLock) canvas.webkitRequestPointerLock()
+}
+
+function exitViewPointerLock () {
+  if (!isViewPointerLocked()) return
+  if (document.exitPointerLock) document.exitPointerLock()
+  else if (document.mozExitPointerLock) document.mozExitPointerLock()
+  else if (document.webkitExitPointerLock) document.webkitExitPointerLock()
+}
+
+function updatePointerLockUI () {
+  var locked = isViewPointerLocked()
+  var crosshair = document.getElementById('crosshair')
+  var tips = document.getElementById('tips')
+  if (crosshair) {
+    // 准星对准主画布中心
+    if (locked) {
+      crosshair.style.display = 'block'
+      crosshair.style.left = (viewLayoutLeft + viewLayoutWidth / 2) + 'px'
+      crosshair.style.top = (viewLayoutTop + viewLayoutHeight / 2) + 'px'
+    } else {
+      crosshair.style.display = 'none'
+    }
+  }
+  if (tips) {
+    tips.textContent = locked
+      ? 'Tips: 鼠标视角中。WASD 移动，QE 平移，Shift 加速，ESC 退出锁定。准星对准物体点击可选中。'
+      : 'Tips: 点击画面进入鼠标视角（类游戏），ESC 退出。WASD 移动，QE 平移，Shift 加速。选中物品后可用 T/G 缩放。'
+  }
+}
+
+function applyMouseLook (dx, dy) {
+  yaw -= dx * lookSensitivity
+  var nextPitch = pitch - dy * lookSensitivity
+  if (nextPitch <= 75 && nextPitch >= -75) {
+    pitch = nextPitch
+  }
+  yawRate2 = 0
+  pitchRate = 0
+}
+
+function getCanvasMouseNDC (event) {
+  var canvas = document.getElementById('view')
+  var rect = canvas.getBoundingClientRect()
+  var nx = ((event.clientX - rect.left) / rect.width) * 2 - 1
+  var ny = -(((event.clientY - rect.top) / rect.height) * 2 - 1)
+  return [nx, ny]
+}
+
+function getCanvasMouseNorm (event) {
+  var canvas = document.getElementById('view')
+  var rect = canvas.getBoundingClientRect()
+  var x = (event.clientX - rect.left) / rect.width
+  var y = 1 - (event.clientY - rect.top) / rect.height
+  return [x, y]
+}
+
+function rotateVecX (v, angle) {
+  var c = Math.cos(angle)
+  var s = Math.sin(angle)
+  return [v[0], v[1] * c - v[2] * s, v[1] * s + v[2] * c]
+}
+
+function rotateVecY (v, angle) {
+  var c = Math.cos(angle)
+  var s = Math.sin(angle)
+  return [v[0] * c + v[2] * s, v[1], -v[0] * s + v[2] * c]
+}
+
+// 鼠标射线与水平面 y = planeY 求交，用于拖拽跟手
+function mouseHitOnHorizontalPlaneNDC (nx, ny, planeY) {
+  var aspect = gl.viewportWidth / gl.viewportHeight
+  var tanHalf = Math.tan(degToRad(45 / 2))
+  var dir = [nx * aspect * tanHalf, ny * tanHalf, -1]
+
+  // 与相机矩阵 Rx(-pitch)*Ry(-yaw)*T 对应：眼空间方向转回世界空间
+  dir = rotateVecX(dir, degToRad(pitch))
+  dir = rotateVecY(dir, degToRad(yaw))
+
+  var len = Math.sqrt(dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2]) || 1
+  dir[0] /= len
+  dir[1] /= len
+  dir[2] /= len
+
+  if (Math.abs(dir[1]) < 0.0001) return null
+  var t = (planeY - yPos) / dir[1]
+  if (t < 0) return null
+  return [xPos + dir[0] * t, planeY, zPos + dir[2] * t]
+}
+
+function mouseHitOnHorizontalPlane (event, planeY) {
+  var ndc = getCanvasMouseNDC(event)
+  return mouseHitOnHorizontalPlaneNDC(ndc[0], ndc[1], planeY)
+}
+
+function isMouseOverCanvas (event) {
+  var canvas = document.getElementById('view')
+  if (!canvas) return false
+  var rect = canvas.getBoundingClientRect()
+  return event.clientX >= rect.left && event.clientX <= rect.right &&
+    event.clientY >= rect.top && event.clientY <= rect.bottom
+}
+
+// 记录点击点相对物体原点的偏移，选中时不移动物体
+function beginDragGrab (event, useCanvasCenter) {
+  var cur = coordinate(selectedi, selectedj)
+  var planeY = parseFloat(cur[1])
+  var hit = useCanvasCenter
+    ? mouseHitOnHorizontalPlaneNDC(0, 0, planeY)
+    : mouseHitOnHorizontalPlane(event, planeY)
+  if (!hit) {
+    dragGrabOffsetX = 0
+    dragGrabOffsetZ = 0
+    return
+  }
+  dragGrabOffsetX = parseFloat(cur[0]) - hit[0]
+  dragGrabOffsetZ = parseFloat(cur[2]) - hit[2]
+}
+
+function dragSelectedToMouse (event) {
+  if (!isMouseOverCanvas(event)) return
+
+  var cur = coordinate(selectedi, selectedj)
+  var planeY = parseFloat(cur[1])
+  var hit = mouseHitOnHorizontalPlane(event, planeY)
+  if (!hit) return
+
+  var targetX = hit[0] + dragGrabOffsetX
+  var targetZ = hit[2] + dragGrabOffsetZ
+  var dx = targetX - parseFloat(cur[0])
+  var dz = targetZ - parseFloat(cur[2])
+  if (dx === 0 && dz === 0) return
+  mat4.translate(translateMatrix[selectedi][selectedj], [dx, 0, dz])
+
+  var norm = getCanvasMouseNorm(event)
+  lastMouseX = norm[0]
+  lastMouseY = norm[1]
+}
+
 function handleKeyDown (event) {
   if (keyevent) // && viewstyle
   {
@@ -37,11 +194,9 @@ function handleKeyDown (event) {
       translateScale[selectedi][selectedj] = [translateScale[selectedi][selectedj][0] - 0.1, translateScale[selectedi][selectedj][1] - 0.1, translateScale[selectedi][selectedj][2] - 0.1]
     }
 
-    if (event.keyCode == 70) // 按键F
+    if (event.keyCode == 27) // ESC
     {
-      viewlock()
-    } else {
-      // 锁定界面
+      exitViewPointerLock()
     }
 
     if (event.keyCode == 80) // P
@@ -49,7 +204,7 @@ function handleKeyDown (event) {
       tapmode()
     }
 
-    if (event.keyCode == 79) // 0
+    if (event.keyCode == 79) // O
     {
       changetestmode()
     }
@@ -107,11 +262,11 @@ function handleKeys () {
 
   if (currentlyPressedKeys[65] && viewstyle) {
     // Left cursor key or A
-    yawRate = 0.1
+    yawRate = 0.12
     if (currentlyPressedKeys[16]) yawRate += 0.1
   } else if (currentlyPressedKeys[68] && viewstyle) {
     // Right cursor key or D
-    yawRate = -0.1
+    yawRate = -0.12
     if (currentlyPressedKeys[16]) yawRate -= 0.1
   } else {
     yawRate = 0
@@ -119,24 +274,24 @@ function handleKeys () {
 
   if (currentlyPressedKeys[87]) {
     // Up cursor key or W
-    speed = 0.003
-    if (currentlyPressedKeys[16]) speed += 0.005; // shift 加速
+    speed = walkSpeed
+    if (currentlyPressedKeys[16]) speed += walkSpeedBoost
   } else if (currentlyPressedKeys[83]) {
     // Down cursor key
-    speed = -0.003
-    if (currentlyPressedKeys[16]) speed -= 0.005; // shift 加速
+    speed = -walkSpeed
+    if (currentlyPressedKeys[16]) speed -= walkSpeedBoost
   } else {
     speed = 0
   }
 
   if (currentlyPressedKeys[81] || (!viewstyle && currentlyPressedKeys[65])) {
     // Q
-    speed2 = 0.003
-    if (currentlyPressedKeys[16]) speed2 += 0.005; // shift 加速
+    speed2 = walkSpeed
+    if (currentlyPressedKeys[16]) speed2 += walkSpeedBoost
   } else if (currentlyPressedKeys[69] || (!viewstyle && currentlyPressedKeys[68])) {
     // E
-    speed2 = -0.003
-    if (currentlyPressedKeys[16]) speed2 -= 0.005; // shift 加速
+    speed2 = -walkSpeed
+    if (currentlyPressedKeys[16]) speed2 -= walkSpeedBoost
   } else {
     speed2 = 0
   }
@@ -145,77 +300,40 @@ function handleKeys () {
 function handleMouseMove (event) {
   if (mouseDown[selectedi][selectedj] && leftkey) {
     lagelapsedtozero()
-    var newX = event.offsetX / gl.viewportWidth
-    var newY = (gl.viewportHeight - event.offsetY) / gl.viewportHeight
-    var deltaX = newX - lastMouseX
-    var deltaY = newY - lastMouseY
-
-    var newTranslateMatrix = mat4.create()
-    mat4.identity(newTranslateMatrix)
-
-    mat4.translate(newTranslateMatrix, [deltaX * 5.5 * Math.cos(-degToRad(yaw)), deltaY * 4, deltaX * 5.5 * Math.sin(-degToRad(yaw))])
-    mat4.multiply(newTranslateMatrix, translateMatrix[selectedi][selectedj], translateMatrix[selectedi][selectedj])
-    lastMouseX = newX
-    lastMouseY = newY
+    // 按鼠标射线与物体高度平面求交，使物体跟手
+    if (!isViewPointerLocked()) {
+      // 刚退出指针锁定时，先用真实光标重算抓取点，避免瞬移
+      if (dragPendingRecenter) {
+        beginDragGrab(event, false)
+        dragPendingRecenter = false
+        return
+      }
+      dragSelectedToMouse(event)
+    } else {
+      // 锁定指针时仍用相对位移（无绝对光标）
+      var scale = 0.02
+      var mx = event.movementX || event.mozMovementX || 0
+      var my = event.movementY || event.mozMovementY || 0
+      mat4.translate(translateMatrix[selectedi][selectedj], [
+        mx * scale * Math.cos(-degToRad(yaw)),
+        0,
+        mx * scale * Math.sin(-degToRad(yaw))
+      ])
+      // 前后移动：结合视角朝向
+      mat4.translate(translateMatrix[selectedi][selectedj], [
+        -my * scale * Math.sin(degToRad(yaw)),
+        0,
+        -my * scale * Math.cos(degToRad(yaw))
+      ])
+    }
+    return
   }
 
-  if (CameraFollow) {
-    var CFnewX = event.clientX
-    var CFnewY = event.clientY
-
-    var CFdeltaX = CFnewX - document.body.clientWidth / 2
-    var CFdeltaY = CFnewY - document.body.clientHeight / 2
-    // 与中心坐标进行对比
-
-    if (Math.abs(CFdeltaX) > 200) {
-
-      // 判断鼠标是否在可动范围
-      var temp
-
-      if (CFdeltaX > 0) {
-        temp = (CFdeltaX - 200) / 10000
-      }else {
-        temp = (CFdeltaX + 200) / 10000
-      }
-      // 速度设置
-
-      var maxspeed = 0.1
-      if (Math.abs(temp) > maxspeed) {
-        if (temp > 0) {
-          yawRate2 = -maxspeed
-        }else {
-          yawRate2 = maxspeed
-        }
-      }else {
-        yawRate2 = -temp
-      }
-    // 最大速度限制
-    } else {
-      yawRate2 = 0
-    }
-
-    if (Math.abs(CFdeltaY) > 200) {
-      var temp
-
-      if (CFdeltaY > 0) {
-        temp = (CFdeltaY - 200) / 10000
-      }else {
-        temp = (CFdeltaY + 200) / 10000
-      }
-
-      var maxspeed = 0.1
-      if (Math.abs(temp) > maxspeed) {
-        if (temp > 0) {
-          pitchRate = -maxspeed
-        }else {
-          pitchRate = maxspeed
-        }
-      }else {
-        pitchRate = -temp
-      }
-    } else {
-      pitchRate = 0
-    }
+  // 游戏式鼠标视角：指针锁定后用相对位移转向
+  if (isViewPointerLocked()) {
+    var lookX = event.movementX || event.mozMovementX || 0
+    var lookY = event.movementY || event.mozMovementY || 0
+    if (lookX !== 0 || lookY !== 0) applyMouseLook(lookX, lookY)
   }
 }
 
@@ -223,21 +341,40 @@ function handleMouseDown (event) {
   if (document.getElementById('roomnameInputArea').style.display !== 'none') {
     finishroomname()
   }
-  if (!mouseDown[selectedi][selectedj] || (ControlMode == 1) || (event.button == 2)) {
-    lastMouseX = event.offsetX / gl.viewportWidth
-    lastMouseY = (gl.viewportHeight - event.offsetY) / gl.viewportHeight
 
-    // $('#button').css('background-image', 'url(icons/arrow-right.png)')
-    // HideAll()
+  var pickingFromCenter = isViewPointerLocked()
+  if (pickingFromCenter) {
+    lastMouseX = 0.5
+    lastMouseY = 0.5
+  } else {
+    var norm = getCanvasMouseNorm(event)
+    lastMouseX = norm[0]
+    lastMouseY = norm[1]
+  }
+
+  if (!mouseDown[selectedi][selectedj] || (ControlMode == 1) || (event.button == 2)) {
     if (event.button == 2) {
       mouseDown[selectedi][selectedj] = false
       leftkey = 0
     }
     ThingsOnClick(event)
     ThingsOnRightClick(event)
-  }else {
+
+    if (event.button == 0) {
+      if (mouseDown[selectedi][selectedj] && leftkey) {
+        // 选中物体时退出锁定，方便拖拽编辑；只记录抓取偏移，不瞬移
+        exitViewPointerLock()
+        beginDragGrab(event, pickingFromCenter)
+        dragPendingRecenter = pickingFromCenter
+      } else if (viewstyle) {
+        // 点空地进入游戏视角
+        requestViewPointerLock()
+      }
+    }
+  } else {
     mouseDown[selectedi][selectedj] = false
     leftkey = 0
+    dragPendingRecenter = false
   }
 }
 
@@ -245,6 +382,7 @@ function handleMouseUp (event) {
   if (ControlMode == 1) {
     mouseDown[selectedi][selectedj] = false
     leftkey = 0
+    dragPendingRecenter = false
   }
 }
 
@@ -270,4 +408,14 @@ function handleMouseWheel (event) {
 
 function handleContextMenu (event) {
   event.preventDefault()
+}
+
+function initPointerLockControls () {
+  var onLockChange = function () {
+    updatePointerLockUI()
+  }
+  document.addEventListener('pointerlockchange', onLockChange, false)
+  document.addEventListener('mozpointerlockchange', onLockChange, false)
+  document.addEventListener('webkitpointerlockchange', onLockChange, false)
+  updatePointerLockUI()
 }

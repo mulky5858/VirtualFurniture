@@ -281,7 +281,8 @@
                 vPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
                 gl_Position = uPMatrix * vPosition;
                 vTextureCoord = aTextureCoord;
-                vTransformedNormal = uNMatrix * aVertexNormal;
+                // 传入片元着色器前规范化，避免缩放后法线长度影响光照
+                vTransformedNormal = normalize(uNMatrix * aVertexNormal);
             }
         </script>
         
@@ -381,7 +382,14 @@
                     canvas.onmousewheel = handleMouseWheel;
                 }
                 canvas.oncontextmenu = handleContextMenu;
-            
+
+                if (window.addEventListener) {
+                    window.addEventListener('resize', refreshwebsite, false)
+                } else {
+                    window.onresize = refreshwebsite
+                }
+                refreshwebsite();
+                initPointerLockControls();
                 
                 tick();
                 
@@ -390,7 +398,7 @@
         </script>
     </head>
 
-    <body onLoad="webGLStart();" onResize="refreshwebsite();" onUnload="" style="background-image:url(img/background.jpg);background-size:cover; ">
+    <body onLoad="webGLStart();" onUnload="" style="background-image:url(img/background.jpg);background-size:cover; ">
 
         <div id="loadingtext">环境搭建中</div>
 
@@ -434,20 +442,21 @@
 
 
 
-        <div id="titlepicture" onClick="ButtonEffect(this.id,'swing');" style="position: absolute; background-image:url(icons/title.png); width:750; height:40;display: none;cursor: pointer;"></div>
-        <div id="buttonbar" style="position: absolute; top:55; background-image:url(icons/buttonbar.png); width:750; height:90;display: none"></div>
+        <div id="titlepicture" onClick="ButtonEffect(this.id,'swing');" style="position: absolute; background-image:url(icons/title.png); background-repeat:no-repeat; background-size:100% 100%; width:750px; height:40px;display: none;cursor: pointer;"></div>
+        <div id="buttonbar" style="position: absolute; top:55px; background-image:url(icons/buttonbar.png); background-repeat:no-repeat; background-size:100% 100%; width:750px; height:90px;display: none"></div>
 
         <div>
 
-            <canvas id="view" style="position: absolute; top:150; border: none; display: none" width="750" height="450"></canvas>
+            <canvas id="view" style="position: absolute; top:150px; left:16px; border: none; display: none" width="750" height="450"></canvas>
+            <div id="crosshair" style="display:none; position:absolute; width:14px; height:14px; margin:-7px 0 0 -7px; border:1px solid rgba(255,255,255,0.9); border-radius:50%; pointer-events:none; z-index:25; box-sizing:border-box;"></div>
 
         </div>
-        <div id="viewload" style="position: absolute; top:150; width:750; height:450; display:none;  background-color:#999; opacity:0.5">
+        <div id="viewload" style="position: absolute; top:150px; left:16px; width:750px; height:450px; display:none;  background-color:#999; opacity:0.5">
             <div align="center" style="padding-top:200px;">
                 处理中...
             </div>
         </div>
-        <div id="sliderbar" style="position: absolute; background-image:url(icons/sliderbar.png); width:240; height:590;display: none">
+        <div id="sliderbar" style="position: absolute; background-image:url(icons/sliderbar.png); background-repeat:no-repeat; background-size:240px 590px; width:240px; height:590px;display: none">
 
             <div>
                 <canvas id="3dthings" onClick="ButtonEffect(this.id,'pulse');" style="position: absolute; top:20;left:20;background-color:#000; border: none; cursor: pointer;"
@@ -810,9 +819,8 @@
             <div id="buttonInputText" style="position: absolute;  top: 90 ; display: none">输入</div>
             <div id="helpText" style="position: absolute;  top: 90 ; display: none">帮助</div>
 
-            <div id="viewlock" onMouseOver="ButtonEffect(this.id,'pulse');" onClick="viewlock();" style=" position: absolute; left:210;width:64; height:64;cursor: pointer; background-image:url(icons/viewlock.png);"></div>
-            <div id="testmode" onMouseOver="ButtonEffect(this.id,'pulse');" onClick="changetestmode();" style=" position: absolute; left:280;width:64; height:64;cursor: pointer; background-image:url(icons/testmode.png);"></div>
-            <div id="tapmode" onMouseOver="ButtonEffect(this.id,'pulse');" onClick="tapmode();" style=" position: absolute; left:350;width:64; height:64;cursor: pointer; background-image:url(icons/tapmode.png);"></div>
+            <div id="testmode" onMouseOver="ButtonEffect(this.id,'pulse');" onClick="changetestmode();" style=" position: absolute; left:210;width:64; height:64;cursor: pointer; background-image:url(icons/testmode.png);"></div>
+            <div id="tapmode" onMouseOver="ButtonEffect(this.id,'pulse');" onClick="tapmode();" style=" position: absolute; left:280;width:64; height:64;cursor: pointer; background-image:url(icons/tapmode.png);"></div>
 
         </div>
 
@@ -841,9 +849,7 @@
 
         <div id="caption" align="center" style="position: absolute;  top: 605;width:1000; height:30; display:none; color:#FFF ">
             <div id="tips" style="font-size: 10px">
-                Tips:在选中物品时，可按键盘上的T和G放大和缩小物体。
-
-
+                Tips: 点击画面进入鼠标视角（类游戏），ESC 退出。WASD 移动，QE 平移，Shift 加速。选中物品后可用 T/G 缩放。
             </div>
             <img src="icons/html5.png" /> &nbsp;
             <img src="icons/webgl.gif" />

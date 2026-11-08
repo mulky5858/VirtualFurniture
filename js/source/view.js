@@ -29,17 +29,6 @@ function changeView () {
   CharacterReset()
 }
 
-function viewlock () {
-  if (viewstyle) {
-    CameraFollow = !CameraFollow
-    yawRate = 0
-    yawRate2 = 0
-    speed = 0
-    speed2 = 0
-    pitchRate = 0
-  }
-}
-
 function CharacterReset () {
   if (viewstyle) {
     zPos = 1

@@ -5,13 +5,10 @@
 function drawScene () {
   gl.useProgram(shaderProgram)
   gl.uniform1i(shaderProgram.samplerUniform, 0)
-  gl.uniform1f(shaderProgram.useLightingUniform, 0)
+  gl.uniform1i(shaderProgram.useLightingUniform, 0)
   gl.uniform1i(shaderProgram.useTexturesUniform, 1)
 
-  gl.uniform3f(shaderProgram.ambientColorUniform, 0.5, 0.5, 0.5)
-
-  mat4.multiplyVec3(mvMatrix, pointlight, newpointlight)
-  gl.uniform3f(shaderProgram.pointLightingLocationUniform, newpointlight[0], newpointlight[1], newpointlight[2])
+  gl.uniform3f(shaderProgram.ambientColorUniform, 0.4, 0.4, 0.4)
   gl.uniform3f(shaderProgram.pointLightingColorUniform, brightness, brightness, brightness)
 
   for (var k = 1; k <= numofTVchannel; k++) {
@@ -31,24 +28,32 @@ function drawScene () {
   mat4.rotate(mvMatrix, degToRad(-yaw), [0, 1, 0])
   mat4.translate(mvMatrix, [-xPos, -yPos, -zPos])
 
+  // 必须在相机矩阵建立后再变换光源，得到与顶点一致的眼空间坐标
+  mat4.multiplyVec3(mvMatrix, pointlight, newpointlight)
+  gl.uniform3f(shaderProgram.pointLightingLocationUniform, newpointlight[0], newpointlight[1], newpointlight[2])
+
   if (testmode) testoutput = '碰撞体积关闭。 光源坐标： ' + pointlight[0].toFixed(3) + ',' + pointlight[1].toFixed(3) + ',' + pointlight[2].toFixed(3) + ' ' + '人物坐标： ' + xPos.toFixed(3) + ',' + yPos.toFixed(3) + ',' + zPos.toFixed(3) + ' 左右转动角度： ' + yaw.toFixed(3) + ' 上下转动角度： ' + pitch.toFixed(3)
 
   if (testmode) document.getElementById('test3').textContent = '点选的物品坐标为： ' + coordinate(selectedi, selectedj)
   else document.getElementById('test3').textContent = ''
 
-  drawroom()
+  // 房间与家具统一受光照控制
+  gl.uniform1i(shaderProgram.useLightingUniform, lighting ? 1 : 0)
 
-  gl.uniform1f(shaderProgram.useLightingUniform, lighting)
+  drawroom()
 
   for (var i = 0; i <= NumberOfObjects - 1; i++) {
     draw(i)
   }
 
+  // 测试模式：红色球体标出点光源位置
+  drawLightMarker()
+
   gl2.useProgram(shaderProgram2)
   gl2.uniform1i(shaderProgram2.samplerUniform, 0)
-  gl2.uniform1f(shaderProgram2.useLightingUniform, 1)
+  gl2.uniform1i(shaderProgram2.useLightingUniform, 1)
   gl2.uniform1i(shaderProgram2.useTexturesUniform, 1)
-  gl2.uniform3f(shaderProgram2.ambientColorUniform, 0.5, 0.5, 0.5)
+  gl2.uniform3f(shaderProgram2.ambientColorUniform, 0.4, 0.4, 0.4)
   gl2.uniform3f(shaderProgram2.pointLightingLocationUniform, 0, 2, 0)
   gl2.uniform3f(shaderProgram2.pointLightingColorUniform, brightness, brightness, brightness)
 

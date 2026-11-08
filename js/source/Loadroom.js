@@ -1,29 +1,120 @@
 var wallVertexPositionBuffer = Array()
 var wallVertexTextureCoordBuffer = Array()
+var wallVertexNormalBuffer = Array()
 var floorVertexPositionBuffer = Array()
 var floorVertexTextureCoordBuffer = Array()
+var floorVertexNormalBuffer = Array()
 var ceilingVertexPositionBuffer = Array()
 var ceilingVertexTextureCoordBuffer = Array()
+var ceilingVertexNormalBuffer = Array()
 var doorVertexPositionBuffer = { }
 var doorVertexTextureCoordBuffer = { }
+var doorVertexNormalBuffer = { }
 for (var i = 0; i <= 19; i++) {
   wallVertexPositionBuffer[i] = Array()
   wallVertexTextureCoordBuffer[i] = Array()
+  wallVertexNormalBuffer[i] = Array()
   floorVertexPositionBuffer[i] = Array()
   floorVertexTextureCoordBuffer[i] = Array()
+  floorVertexNormalBuffer[i] = Array()
   ceilingVertexPositionBuffer[i] = Array()
   ceilingVertexTextureCoordBuffer[i] = Array()
+  ceilingVertexNormalBuffer[i] = Array()
 }
 
 for (var i = 0; i <= 19; i++) {
   for (var j = 0; j <= 19; j++) {
     wallVertexPositionBuffer[i][j] = { }
     wallVertexTextureCoordBuffer[i][j] = { }
+    wallVertexNormalBuffer[i][j] = { }
     floorVertexPositionBuffer[i][j] = { }
     floorVertexTextureCoordBuffer[i][j] = { }
+    floorVertexNormalBuffer[i][j] = { }
     ceilingVertexPositionBuffer[i][j] = { }
     ceilingVertexTextureCoordBuffer[i][j] = { }
+    ceilingVertexNormalBuffer[i][j] = { }
   }
+}
+
+function computeTriangleNormals (vertexPositions) {
+  var normals = []
+  for (var i = 0; i + 8 < vertexPositions.length; i += 9) {
+    var ax = vertexPositions[i]
+    var ay = vertexPositions[i + 1]
+    var az = vertexPositions[i + 2]
+    var bx = vertexPositions[i + 3]
+    var by = vertexPositions[i + 4]
+    var bz = vertexPositions[i + 5]
+    var cx = vertexPositions[i + 6]
+    var cy = vertexPositions[i + 7]
+    var cz = vertexPositions[i + 8]
+
+    var ux = bx - ax
+    var uy = by - ay
+    var uz = bz - az
+    var vx = cx - ax
+    var vy = cy - ay
+    var vz = cz - az
+
+    var nx = uy * vz - uz * vy
+    var ny = uz * vx - ux * vz
+    var nz = ux * vy - uy * vx
+    var len = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1
+    nx /= len
+    ny /= len
+    nz /= len
+
+    for (var k = 0; k < 3; k++) {
+      normals.push(nx, ny, nz)
+    }
+  }
+  return normals
+}
+
+function parseRoomMesh (data) {
+  var lines = data.split('\n')
+  var vertexCount = 0
+  var vertexPositions = []
+  var vertexTextureCoords = []
+
+  for (var i in lines) {
+    var vals = lines[i].split(' ')
+    if (vals[0] != '//' && vals.length >= 5) {
+      vertexPositions.push(parseFloat(vals[0]))
+      vertexPositions.push(parseFloat(vals[1]))
+      vertexPositions.push(parseFloat(vals[2]))
+      vertexTextureCoords.push(parseFloat(vals[3]))
+      vertexTextureCoords.push(parseFloat(vals[4]))
+      vertexCount += 1
+    }
+  }
+
+  return {
+    vertexCount: vertexCount,
+    vertexPositions: vertexPositions,
+    vertexTextureCoords: vertexTextureCoords,
+    vertexNormals: computeTriangleNormals(vertexPositions)
+  }
+}
+
+function uploadRoomMesh (positionBuffer, texBuffer, normalBuffer, mesh) {
+  positionBuffer.data = gl.createBuffer()
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer.data)
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mesh.vertexPositions), gl.STATIC_DRAW)
+  positionBuffer.itemSize = 3
+  positionBuffer.numItems = mesh.vertexCount
+
+  texBuffer.data = gl.createBuffer()
+  gl.bindBuffer(gl.ARRAY_BUFFER, texBuffer.data)
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mesh.vertexTextureCoords), gl.STATIC_DRAW)
+  texBuffer.itemSize = 2
+  texBuffer.numItems = mesh.vertexCount
+
+  normalBuffer.data = gl.createBuffer()
+  gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer.data)
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mesh.vertexNormals), gl.STATIC_DRAW)
+  normalBuffer.itemSize = 3
+  normalBuffer.numItems = mesh.vertexCount
 }
 
 function loadRoom () {
@@ -39,145 +130,21 @@ function loadRoom () {
 }
 
 function handleLoadedWall (wi, wj) {
-  var data = buildwall(wi - 10, wj - 10)
-  var lines = data.split('\n')
-  var vertexCount = 0
-  var vertexPositions = []
-  var vertexTextureCoords = []
-
-  for (var i in lines) {
-    var vals = lines[i].split(' ')
-    if (vals[0] != '//') {
-      // It is a line describing a vertex; get X, Y and Z first
-      vertexPositions.push(parseFloat(vals[0]))
-      vertexPositions.push(parseFloat(vals[1]))
-      vertexPositions.push(parseFloat(vals[2]))
-
-      // And then the texture coords
-      vertexTextureCoords.push(parseFloat(vals[3]))
-      vertexTextureCoords.push(parseFloat(vals[4]))
-
-      vertexCount += 1
-    }
-  }
-
-  wallVertexPositionBuffer[wi][wj].data = gl.createBuffer()
-  gl.bindBuffer(gl.ARRAY_BUFFER, wallVertexPositionBuffer[wi][wj].data)
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexPositions), gl.STATIC_DRAW)
-  wallVertexPositionBuffer[wi][wj].itemSize = 3
-  wallVertexPositionBuffer[wi][wj].numItems = vertexCount
-
-  wallVertexTextureCoordBuffer[wi][wj].data = gl.createBuffer()
-  gl.bindBuffer(gl.ARRAY_BUFFER, wallVertexTextureCoordBuffer[wi][wj].data)
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexTextureCoords), gl.STATIC_DRAW)
-  wallVertexTextureCoordBuffer[wi][wj].itemSize = 2
-  wallVertexTextureCoordBuffer[wi][wj].numItems = vertexCount
+  var mesh = parseRoomMesh(buildwall(wi - 10, wj - 10))
+  uploadRoomMesh(wallVertexPositionBuffer[wi][wj], wallVertexTextureCoordBuffer[wi][wj], wallVertexNormalBuffer[wi][wj], mesh)
 }
 
 function handleLoadedFloor (fi, fj) {
-  var data = buildfloor(fi - 10, fj - 10)
-  var lines = data.split('\n')
-  var vertexCount = 0
-  var vertexPositions = []
-  var vertexTextureCoords = []
-
-  for (var i in lines) {
-    var vals = lines[i].split(' ')
-    if (vals[0] != '//') {
-      // It is a line describing a vertex; get X, Y and Z first
-      vertexPositions.push(parseFloat(vals[0]))
-      vertexPositions.push(parseFloat(vals[1]))
-      vertexPositions.push(parseFloat(vals[2]))
-
-      // And then the texture coords
-      vertexTextureCoords.push(parseFloat(vals[3]))
-      vertexTextureCoords.push(parseFloat(vals[4]))
-
-      vertexCount += 1
-    }
-  }
-
-  floorVertexPositionBuffer[fi][fj].data = gl.createBuffer()
-  gl.bindBuffer(gl.ARRAY_BUFFER, floorVertexPositionBuffer[fi][fj].data)
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexPositions), gl.STATIC_DRAW)
-  floorVertexPositionBuffer[fi][fj].itemSize = 3
-  floorVertexPositionBuffer[fi][fj].numItems = vertexCount
-
-  floorVertexTextureCoordBuffer[fi][fj].data = gl.createBuffer()
-  gl.bindBuffer(gl.ARRAY_BUFFER, floorVertexTextureCoordBuffer[fi][fj].data)
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexTextureCoords), gl.STATIC_DRAW)
-  floorVertexTextureCoordBuffer[fi][fj].itemSize = 2
-  floorVertexTextureCoordBuffer[fi][fj].numItems = vertexCount
+  var mesh = parseRoomMesh(buildfloor(fi - 10, fj - 10))
+  uploadRoomMesh(floorVertexPositionBuffer[fi][fj], floorVertexTextureCoordBuffer[fi][fj], floorVertexNormalBuffer[fi][fj], mesh)
 }
 
 function handleLoadedCeiling (ci, cj) {
-  var data = buildceiling(ci - 10, cj - 10)
-  var lines = data.split('\n')
-  var vertexCount = 0
-  var vertexPositions = []
-  var vertexTextureCoords = []
-
-  for (var i in lines) {
-    var vals = lines[i].split(' ')
-    if (vals[0] != '//') {
-      // It is a line describing a vertex; get X, Y and Z first
-      vertexPositions.push(parseFloat(vals[0]))
-      vertexPositions.push(parseFloat(vals[1]))
-      vertexPositions.push(parseFloat(vals[2]))
-
-      // And then the texture coords
-      vertexTextureCoords.push(parseFloat(vals[3]))
-      vertexTextureCoords.push(parseFloat(vals[4]))
-
-      vertexCount += 1
-    }
-  }
-
-  ceilingVertexPositionBuffer[ci][cj].data = gl.createBuffer()
-  gl.bindBuffer(gl.ARRAY_BUFFER, ceilingVertexPositionBuffer[ci][cj].data)
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexPositions), gl.STATIC_DRAW)
-  ceilingVertexPositionBuffer[ci][cj].itemSize = 3
-  ceilingVertexPositionBuffer[ci][cj].numItems = vertexCount
-
-  ceilingVertexTextureCoordBuffer[ci][cj].data = gl.createBuffer()
-  gl.bindBuffer(gl.ARRAY_BUFFER, ceilingVertexTextureCoordBuffer[ci][cj].data)
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexTextureCoords), gl.STATIC_DRAW)
-  ceilingVertexTextureCoordBuffer[ci][cj].itemSize = 2
-  ceilingVertexTextureCoordBuffer[ci][cj].numItems = vertexCount
+  var mesh = parseRoomMesh(buildceiling(ci - 10, cj - 10))
+  uploadRoomMesh(ceilingVertexPositionBuffer[ci][cj], ceilingVertexTextureCoordBuffer[ci][cj], ceilingVertexNormalBuffer[ci][cj], mesh)
 }
 
 function handleLoadedDoor () {
-  var data = builddoor()
-  var lines = data.split('\n')
-  var vertexCount = 0
-  var vertexPositions = []
-  var vertexTextureCoords = []
-
-  for (var i in lines) {
-    var vals = lines[i].split(' ')
-    if (vals[0] != '//') {
-      // It is a line describing a vertex; get X, Y and Z first
-      vertexPositions.push(parseFloat(vals[0]))
-      vertexPositions.push(parseFloat(vals[1]))
-      vertexPositions.push(parseFloat(vals[2]))
-
-      // And then the texture coords
-      vertexTextureCoords.push(parseFloat(vals[3]))
-      vertexTextureCoords.push(parseFloat(vals[4]))
-
-      vertexCount += 1
-    }
-  }
-
-  doorVertexPositionBuffer.data = gl.createBuffer()
-  gl.bindBuffer(gl.ARRAY_BUFFER, doorVertexPositionBuffer.data)
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexPositions), gl.STATIC_DRAW)
-  doorVertexPositionBuffer.itemSize = 3
-  doorVertexPositionBuffer.numItems = vertexCount
-
-  doorVertexTextureCoordBuffer.data = gl.createBuffer()
-  gl.bindBuffer(gl.ARRAY_BUFFER, doorVertexTextureCoordBuffer.data)
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexTextureCoords), gl.STATIC_DRAW)
-  doorVertexTextureCoordBuffer.itemSize = 2
-  doorVertexTextureCoordBuffer.numItems = vertexCount
+  var mesh = parseRoomMesh(builddoor())
+  uploadRoomMesh(doorVertexPositionBuffer, doorVertexTextureCoordBuffer, doorVertexNormalBuffer, mesh)
 }

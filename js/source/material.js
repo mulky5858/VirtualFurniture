@@ -10,6 +10,39 @@ var materialPacks = {
   ceiling: { normal: null, roughness: null, specular: 0.18, shininess: 10.0 }
 }
 
+// 关闭材质贴图时仍绑定有效 sampler，避免部分驱动采样未绑定纹理
+var materialFallbackNormal = null
+var materialFallbackRoughness = null
+
+function materialTexReady (tex) {
+  return !!(tex && tex.webglUploaded && tex.image && tex.image.width > 1 && tex.image.height > 1)
+}
+
+function createSolidTexture (rgba) {
+  var tex = gl.createTexture()
+  gl.bindTexture(gl.TEXTURE_2D, tex)
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(rgba))
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+  gl.bindTexture(gl.TEXTURE_2D, null)
+  tex.webglUploaded = true
+  return tex
+}
+
+function ensureMaterialFallbacks () {
+  if (!gl) return
+  if (!materialFallbackNormal) {
+    // 平坦法线 (0,0,1) → RGB (128,128,255)
+    materialFallbackNormal = createSolidTexture([128, 128, 255, 255])
+  }
+  if (!materialFallbackRoughness) {
+    // 中等粗糙度，避免误开贴图时高光爆掉
+    materialFallbackRoughness = createSolidTexture([140, 140, 140, 255])
+  }
+}
+
 // 物体类型 → 材质类别
 function materialKindForType (num) {
   // 灯具、垃圾桶、电话：金属
@@ -37,20 +70,24 @@ function isWoodMaterialType (num) {
 
 function bindMaterialMaps (kindOrEnabled) {
   if (!shaderProgram || !shaderProgram.useMaterialMapsUniform) return
+  ensureMaterialFallbacks()
 
   var kind = null
   if (kindOrEnabled === true) kind = 'wood'
   else if (kindOrEnabled && typeof kindOrEnabled === 'string') kind = kindOrEnabled
 
   var pack = kind ? materialPacks[kind] : null
-  if (pack && pack.normal && pack.roughness) {
+  var useMaps = !!(pack && materialTexReady(pack.normal) && materialTexReady(pack.roughness))
+
+  gl.activeTexture(gl.TEXTURE2)
+  gl.bindTexture(gl.TEXTURE_2D, useMaps ? pack.normal : materialFallbackNormal)
+  gl.uniform1i(shaderProgram.normalMapUniform, 2)
+  gl.activeTexture(gl.TEXTURE3)
+  gl.bindTexture(gl.TEXTURE_2D, useMaps ? pack.roughness : materialFallbackRoughness)
+  gl.uniform1i(shaderProgram.roughnessMapUniform, 3)
+
+  if (useMaps) {
     gl.uniform1i(shaderProgram.useMaterialMapsUniform, 1)
-    gl.activeTexture(gl.TEXTURE2)
-    gl.bindTexture(gl.TEXTURE_2D, pack.normal)
-    gl.uniform1i(shaderProgram.normalMapUniform, 2)
-    gl.activeTexture(gl.TEXTURE3)
-    gl.bindTexture(gl.TEXTURE_2D, pack.roughness)
-    gl.uniform1i(shaderProgram.roughnessMapUniform, 3)
     gl.uniform1f(shaderProgram.specularStrengthUniform, pack.specular)
     gl.uniform1f(shaderProgram.shininessUniform, pack.shininess)
   } else {
@@ -66,16 +103,17 @@ function loadMaterialTexture (path, assign) {
   tex.image = new Image()
   tex.image.onload = function () {
     handleLoadedTexture(tex)
-    assign(tex)
+    // 仅在真实贴图上传成功后启用；失败/占位不 assign，保持 pack 为 null
+    if (materialTexReady(tex)) assign(tex)
   }
   tex.image.onerror = function () {
-    handleLoadedTexture(tex)
-    assign(tex)
+    // 不写入 pack，避免黑占位法线把材质通路打开
   }
   tex.image.src = path
 }
 
 function initMaterialTextures () {
+  ensureMaterialFallbacks()
   var names = ['wood', 'fabric', 'metal', 'plastic', 'ceramic', 'paper', 'plaster', 'ceiling']
   for (var i = 0; i < names.length; i++) {
     (function (name) {

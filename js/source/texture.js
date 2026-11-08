@@ -1,17 +1,30 @@
+function isPowerOfTwo (value) {
+  return value > 0 && (value & (value - 1)) === 0
+}
+
 function handleLoadedTexture (texture) {
   try {
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
     gl.bindTexture(gl.TEXTURE_2D, texture)
-    if (texture.image && texture.image.width > 0) {
+    var hasImage = texture.image && texture.image.width > 0 && texture.image.height > 0
+    if (hasImage) {
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image)
     } else {
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]))
     }
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
-    gl.generateMipmap(gl.TEXTURE_2D)
+    // WebGL1：仅 POT 纹理可安全用 mipmap；NPOT 用 LINEAR，避免采样变黑
+    var canMip = hasImage && isPowerOfTwo(texture.image.width) && isPowerOfTwo(texture.image.height)
+    if (canMip) {
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
+      gl.generateMipmap(gl.TEXTURE_2D)
+    } else {
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+    }
     gl.bindTexture(gl.TEXTURE_2D, null)
-    texture.webglUploaded = true
+    texture.webglUploaded = !!hasImage
   } catch (e) {
     try {
       gl.bindTexture(gl.TEXTURE_2D, texture)

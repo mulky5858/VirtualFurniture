@@ -73,6 +73,6 @@ function changetestmode () {
     alert('测试模式开启。')
   }else {
     testmodeclose()
-    alert('测试模关闭。')
+    alert('测试模式关闭。')
   }
 }

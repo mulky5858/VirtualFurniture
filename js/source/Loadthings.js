@@ -34,18 +34,60 @@ for (var i = 0; i <= MaxNumberOfObjects; i++) {
   ThingsVertexNormalBuffer2[i] = { }
 }
 
+function createEmptyModelData () {
+  return {
+    vertexNormals: [0, 1, 0, 0, 1, 0, 0, 1, 0],
+    vertexTextureCoords: [0, 0, 1, 0, 0.5, 1],
+    vertexPositions: [0, 0, 0, 0.01, 0, 0, 0, 0.01, 0],
+    indices: [0, 1, 2]
+  }
+}
+
+function finishLoadThings (ThingsData, num) {
+  try {
+    handleLoadedThings(ThingsData, num)
+    handleLoadedThings2(ThingsData, num)
+  } catch (e) {
+    try {
+      var emptyData = createEmptyModelData()
+      handleLoadedThings(emptyData, num)
+      handleLoadedThings2(emptyData, num)
+    } catch (e2) {}
+  }
+  ModleLoad[num] = true
+}
+
 function loadThings (shape, num) {
   var request = new XMLHttpRequest()
-  request.open('GET', shape)
+  var settled = false
 
-  request.onreadystatechange = function () {
-    if (request.readyState == 4 && request.status == 200) {
-      handleLoadedThings(JSON.parse(request.responseText), num)
-      handleLoadedThings2(JSON.parse(request.responseText), num)
-      ModleLoad[num] = true
-    }
+  function settle (ThingsData) {
+    if (settled) return
+    settled = true
+    finishLoadThings(ThingsData || createEmptyModelData(), num)
   }
-  request.send()
+
+  request.open('GET', shape, true)
+  request.onreadystatechange = function () {
+    if (request.readyState != 4) return
+    var ok = (request.status == 200 || request.status == 0)
+    var text = request.responseText
+    if (ok && text && text.length > 0) {
+      try {
+        settle(JSON.parse(text))
+        return
+      } catch (e) {}
+    }
+    settle(null)
+  }
+  request.onerror = function () {
+    settle(null)
+  }
+  try {
+    request.send()
+  } catch (e) {
+    settle(null)
+  }
 }
 function handleLoadedThings (ThingsData, num) {
   ThingsVertexNormalBuffer[num].data = gl.createBuffer()
@@ -170,6 +212,14 @@ function handleLoadedThings2 (ThingsData, num) {
 }
 
 function LoadingAll () {
+  // Chrome 等浏览器禁止 file:// 页面用 XHR 读取本地 JSON 模型
+  if (location.protocol === 'file:') {
+    window.fileProtocolBlocked = true
+    document.getElementById('loadingtext').textContent =
+      '无法在 file:// 下加载模型。请双击运行项目里的 start.bat，然后访问 http://localhost:8080'
+    return
+  }
+
   loadThings('model/lamp.json', 0)
   loadThings('model/sofa.json', 1)
   loadThings('model/TV.json', 2)

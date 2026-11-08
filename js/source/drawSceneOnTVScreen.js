@@ -179,8 +179,17 @@ function drawSceneOnTVScreen (channel) {
 }
 
 function refreshTVtexture (i) {
-	onloadTVtexture[i] = gl.createTexture()
-	onloadTVtexture[i].image = new Image()
-	onloadTVtexture[i].image.src = tvTexture[i][change[i]].image.src
-	handleLoadedTexture(onloadTVtexture[i])
+	var frame = change[i]
+	if (!frame || frame < 1) frame = 1
+	if (!tvTexture[i][frame]) {
+		initTVTexture(i, frame)
+	}
+	if (tvTexture[i][frame] && TextureLoad[i][frame]) {
+		onloadTVtexture[i] = tvTexture[i][frame]
+	} else if (!onloadTVtexture[i]) {
+		// 首帧尚未就绪时用占位纹理，避免 bind 到 undefined
+		onloadTVtexture[i] = gl.createTexture()
+		onloadTVtexture[i].image = null
+		handleLoadedTexture(onloadTVtexture[i])
+	}
 }

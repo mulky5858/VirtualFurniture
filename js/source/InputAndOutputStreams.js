@@ -53,13 +53,55 @@ function initialize () {
 
 }
 
+var defaultEmptySceneText = [
+  '//2012.10.19 18:54',
+  '# -1 1 0 0 0',
+  '# 0 0.000 2.000 0.000 0 0 1.000'
+].join('\n')
+
 function inputstream (url) {
   viewclose()
   initialize()
+
+  // 优先同步读取（调用方依赖加载完成后立刻绘制）；失败再异步或回退默认场景
+  try {
+    var syncReq = new XMLHttpRequest()
+    syncReq.open('GET', url, false)
+    syncReq.send(null)
+    if ((syncReq.status == 200 || syncReq.status == 0) && syncReq.responseText) {
+      doLoadObj(syncReq.responseText)
+      return
+    }
+  } catch (e) {}
+
   var req = new XMLHttpRequest()
-  req.onreadystatechange = function () { processLoadObj(req) }
-  req.open('GET', url, false)
-  req.send()
+  var settled = false
+
+  function applyText (text) {
+    if (settled) return
+    settled = true
+    doLoadObj(text || defaultEmptySceneText)
+  }
+
+  req.onreadystatechange = function () {
+    if (req.readyState != 4) return
+    var ok = (req.status == 200 || req.status == 0)
+    if (ok && req.responseText && req.responseText.length > 0) {
+      applyText(req.responseText)
+    } else {
+      applyText(null)
+    }
+  }
+  req.onerror = function () {
+    applyText(null)
+  }
+
+  try {
+    req.open('GET', url, true)
+    req.send()
+  } catch (e2) {
+    applyText(null)
+  }
 }
 
 function processLoadObj (req) {

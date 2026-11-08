@@ -59,14 +59,10 @@ function animate () {
       }
     }
 
-    for (var i = 1; i <= numofTVchannel; i++) {
-      if (change[i] > (PicturesOfChannel[i] - 0.5)) {
-        change[i] = 0
-      }
-    }
     if (sumelapsed >= (1000 / 8)) {
       for (var i = 1; i <= numofTVchannel; i++) {
         change[i] += 1
+        if (change[i] > PicturesOfChannel[i]) change[i] = 1
         refreshTVtexture(i)
       }
       sumelapsed = 0

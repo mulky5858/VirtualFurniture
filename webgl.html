@@ -298,7 +298,7 @@
         
             function initGL(canvas) {
                 try {
-                    gl = canvas.getContext("experimental-webgl");
+                    gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
                     gl.viewportWidth = canvas.width;
                     gl.viewportHeight = canvas.height;
                 } catch (e) {
@@ -310,7 +310,7 @@
                 
             function initGL2(canvas) {
                 try {
-                    gl2 = canvas.getContext("experimental-webgl");
+                    gl2 = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
                     gl2.viewportWidth = canvas.width;
                     gl2.viewportHeight = canvas.height;
                 } catch (e) {
@@ -337,7 +337,11 @@
                 document.getElementById("loadingtext").textContent = "搭建着色器..";
                 initShaders(gl);
                 initShaders2(gl2);
-                document.getElementById("loadingtext").textContent = "载入贴图..";
+                if (location.protocol === "file:") {
+                    document.getElementById("loadingtext").textContent = "检测到本地文件打开，建议使用本地 HTTP 服务以获得完整贴图。正在载入..";
+                } else {
+                    document.getElementById("loadingtext").textContent = "载入贴图..";
+                }
                 initTexture();  
                 
                 for (var k=1; k<=numofTVchannel;k++)
@@ -369,7 +373,13 @@
                 document.onmousemove = handleMouseMove;
                 canvas.onmousedown = handleMouseDown;
                 canvas.onmouseup = handleMouseUp;
-                canvas.onmousewheel = handleMouseWheel;
+                // 只绑一种滚轮事件，避免 Chrome 下 wheel + mousewheel 各触发一次导致位移翻倍
+                if (canvas.addEventListener) {
+                    canvas.addEventListener('wheel', handleMouseWheel, false);
+                    canvas.addEventListener('DOMMouseScroll', handleMouseWheel, false);
+                } else {
+                    canvas.onmousewheel = handleMouseWheel;
+                }
                 canvas.oncontextmenu = handleContextMenu;
             
                 

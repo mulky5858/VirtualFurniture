@@ -9,17 +9,45 @@
   <script type="text/javascript">
 
     function run() {
-      bro = "浏览器版本为: ";
-      if ($.browser.chrome) document.getElementById("BrowserVersion").textContent = bro + "Chrome " + $.browser.version;
-      if ($.browser.mozilla) document.getElementById("BrowserVersion").textContent = bro + "Firefox " + $.browser.version;
-      if ($.browser.msie) document.getElementById("BrowserVersion").innerText = bro + "Microsoft Internet Explorer " + $.browser.version;
-      if ($.browser.safari) document.getElementById("BrowserVersion").textContent = bro + "Safari " + $.browser.version;
-      if ($.browser.opera) document.getElementById("BrowserVersion").textContent = bro + "Opera " + $.browser.version;
+      var canvas = document.createElement("canvas");
+      var gl = null;
+      try {
+        gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+      } catch (e) {
+      }
+
+      var ua = navigator.userAgent;
+      var bro = "浏览器版本为: ";
+      if (/Edg\//.test(ua)) {
+        document.getElementById("BrowserVersion").textContent = bro + "Microsoft Edge";
+      } else if (/Chrome\//.test(ua) && !/Edg\//.test(ua)) {
+        document.getElementById("BrowserVersion").textContent = bro + "Chrome";
+      } else if (/Firefox\//.test(ua)) {
+        document.getElementById("BrowserVersion").textContent = bro + "Firefox";
+      } else if (/Safari\//.test(ua) && !/Chrome\//.test(ua)) {
+        document.getElementById("BrowserVersion").textContent = bro + "Safari";
+      } else if (/MSIE |Trident\//.test(ua)) {
+        document.getElementById("BrowserVersion").textContent = bro + "Microsoft Internet Explorer";
+      } else if (/OPR\//.test(ua) || /Opera\//.test(ua)) {
+        document.getElementById("BrowserVersion").textContent = bro + "Opera";
+      }
+
+      if (gl) {
+        document.getElementById("BrowserVersion").textContent += "（支持 WebGL）";
+      } else {
+        document.getElementById("BrowserVersion").textContent =
+          (document.getElementById("BrowserVersion").textContent.indexOf("浏览器版本") === 0
+            ? document.getElementById("BrowserVersion").textContent
+            : "未能识别浏览器") + "（不支持 WebGL，可能无法运行）";
+      }
+
+      if (location.protocol === "file:") {
+        var tip = document.getElementById("LocalOpenTip");
+        if (tip) tip.style.display = "block";
+      }
 
       var img = new Image();
       img.src = "img/background.jpg";
-
-
     }
 
 
@@ -67,6 +95,9 @@
       <tr>
         <td>
           <div align="center" id="BrowserVersion">浏览器信息未成功取得，可能无法运行。
+          </div>
+          <div align="center" id="LocalOpenTip" style="display:none;color:#b00020;margin-top:12px;font-size:16px;">
+            检测到你正在用本地文件方式打开。请先双击运行 <b>start.bat</b>，再通过 http://localhost:8080 访问，否则模型无法加载。
           </div>
         </td>
       </tr>

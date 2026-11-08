@@ -90,9 +90,9 @@ function ThingsOnClick (event) {
     var closestj = somethingschoosedj[0]
     var closestdistance = 10000
     for (var i = 0; i <= choosesomethings; i++) {
-      var x = coordinate(somethingschoosedi[i], [somethingschoosedj[i]])[0]
-      var y = coordinate(somethingschoosedi[i], [somethingschoosedj[i]])[1]
-      var z = coordinate(somethingschoosedi[i], [somethingschoosedj[i]])[2]
+      var x = coordinate(somethingschoosedi[i], somethingschoosedj[i])[0]
+      var y = coordinate(somethingschoosedi[i], somethingschoosedj[i])[1]
+      var z = coordinate(somethingschoosedi[i], somethingschoosedj[i])[2]
 
       var distance = Hypotenuse(x - xPos, z - zPos)
 

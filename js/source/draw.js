@@ -71,32 +71,42 @@ function drawScene () {
   document.getElementById('test').textContent = testoutput
 }
 
+var textureLoadStartedAt = 0
+var modelLoadStartedAt = 0
 function tick () {
   requestAnimFrame(tick)
 
+  if (window.fileProtocolBlocked) {
+    return
+  }
+
   if (!TextureLoaded) {
-    var maxloaded = Array()
-    var thingstexturemaxloaded = 0
-    var summaxloaded = 0
-    TextureLoaded = 1
+    if (!textureLoadStartedAt) textureLoadStartedAt = new Date().getTime()
 
-    for (var i = 0; i <= NumberOfObjects - 1; i++)
+    var stillLoading = 0
+    for (var i = 0; i <= NumberOfObjects - 1; i++) {
       for (var j = 0; j <= 5; j++) {
-        if (ThingsTextureLoad[i][j] == false) TextureLoaded = 0
-        else thingstexturemaxloaded++
-    }
-    summaxloaded += thingstexturemaxloaded
-
-    for (var k = 1; k <= numofTVchannel; k++) {
-      maxloaded[k] = 0
-      for (var i = 1; i <= PicturesOfChannel[k]; i++) {
-        if (TextureLoad[k][i] == false) TextureLoaded = 0
-        else maxloaded[k]++
+        if (ThingsTextureLoad[i][j] == false) stillLoading++
       }
-      summaxloaded += maxloaded[k]
     }
-    document.getElementById('loadingtext').textContent = '正在载入贴图（' + Math.floor(summaxloaded / (numofPictures + (6 * NumberOfObjects)) * 95 + 5) + '%）'
-    loadbarchange(Math.round(Math.floor(summaxloaded / (numofPictures + (6 * NumberOfObjects)) * 95 + 5) * 0.05))
+
+    // 超时保护：个别贴图既不触发 onload 也不触发 onerror 时不永远卡住
+    if (stillLoading > 0 && new Date().getTime() - textureLoadStartedAt > 20000) {
+      for (var ti = 0; ti <= NumberOfObjects - 1; ti++) {
+        for (var tj = 0; tj <= 5; tj++) {
+          ThingsTextureLoad[ti][tj] = true
+        }
+      }
+      stillLoading = 0
+    }
+
+    TextureLoaded = stillLoading === 0 ? 1 : 0
+
+    var pendingTotal = thingsTexturePending > 0 ? thingsTexturePending : 1
+    var doneCount = Math.max(pendingTotal - stillLoading, 0)
+    var percent = Math.floor(doneCount / pendingTotal * 95 + 5)
+    document.getElementById('loadingtext').textContent = '正在载入贴图（' + percent + '%）'
+    loadbarchange(Math.round(percent * 0.05))
 
     if (TextureLoaded && loadingtextureend) {
       loadingtextureend = 0
@@ -105,14 +115,25 @@ function tick () {
     }
   }else {
     if (!ModleLoaded) {
+      if (!modelLoadStartedAt) modelLoadStartedAt = new Date().getTime()
+
       var maxloaded = 0
       for (var i = 0; i <= NumberOfObjects - 1; i++) {
-        ModleLoaded = 1
-        if (ModleLoad[i] == false) ModleLoaded = 0
-        else maxloaded++
-        document.getElementById('loadingtext').textContent = '贴图载入完成，正在载入模型（' + Math.floor(100 / NumberOfObjects * maxloaded) + '%）'
-        loadbarchange(Math.round(Math.floor(100 / NumberOfObjects * maxloaded) * 0.05) + 5)
+        if (ModleLoad[i]) maxloaded++
       }
+
+      // 仅在完全无进度时超时，避免大模型下载中被误判
+      if (maxloaded === 0 && new Date().getTime() - modelLoadStartedAt > 30000) {
+        for (var mi = 0; mi <= NumberOfObjects - 1; mi++) {
+          if (!ModleLoad[mi]) finishLoadThings(createEmptyModelData(), mi)
+        }
+        maxloaded = NumberOfObjects
+      }
+
+      ModleLoaded = maxloaded >= NumberOfObjects ? 1 : 0
+      document.getElementById('loadingtext').textContent =
+        '贴图载入完成，正在载入模型（' + Math.floor(100 / NumberOfObjects * maxloaded) + '%）'
+      loadbarchange(Math.round(Math.floor(100 / NumberOfObjects * maxloaded) * 0.05) + 5)
     }else {
       if (loadingend) {
         loadingend = 0

@@ -220,7 +220,9 @@ function handleMouseMove (event) {
 }
 
 function handleMouseDown (event) {
-  finishroomname()
+  if (document.getElementById('roomnameInputArea').style.display !== 'none') {
+    finishroomname()
+  }
   if (!mouseDown[selectedi][selectedj] || (ControlMode == 1) || (event.button == 2)) {
     lastMouseX = event.offsetX / gl.viewportWidth
     lastMouseY = (gl.viewportHeight - event.offsetY) / gl.viewportHeight
@@ -252,6 +254,9 @@ function handleMouseWheel (event) {
     var direct = 0
     if (event.wheelDelta) {
       direct = event.wheelDelta > 0 ? 1 : -1
+    }
+    else if (typeof event.deltaY === 'number' && event.deltaY !== 0) {
+      direct = event.deltaY < 0 ? 1 : -1
     }
     else if (event.detail) {
       direct = event.detail < 0 ? 1 : -1

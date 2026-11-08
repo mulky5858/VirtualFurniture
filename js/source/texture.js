@@ -1,22 +1,52 @@
 function handleLoadedTexture (texture) {
-  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
-  gl.bindTexture(gl.TEXTURE_2D, texture)
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
-
-  gl.bindTexture(gl.TEXTURE_2D, null)
+  try {
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
+    gl.bindTexture(gl.TEXTURE_2D, texture)
+    if (texture.image && texture.image.width > 0) {
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image)
+    } else {
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]))
+    }
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+    gl.bindTexture(gl.TEXTURE_2D, null)
+    texture.webglUploaded = true
+  } catch (e) {
+    try {
+      gl.bindTexture(gl.TEXTURE_2D, texture)
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]))
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+      gl.bindTexture(gl.TEXTURE_2D, null)
+    } catch (e2) {}
+    texture.webglUploaded = false
+  }
 }
 
 function handleLoadedTexture2 (texture) {
-  gl2.pixelStorei(gl2.UNPACK_FLIP_Y_WEBGL, true)
-  gl2.bindTexture(gl2.TEXTURE_2D, texture)
-  gl2.texImage2D(gl2.TEXTURE_2D, 0, gl2.RGBA, gl2.RGBA, gl2.UNSIGNED_BYTE, texture.image)
-  gl2.texParameteri(gl2.TEXTURE_2D, gl2.TEXTURE_MAG_FILTER, gl2.LINEAR)
-  gl2.texParameteri(gl2.TEXTURE_2D, gl2.TEXTURE_MIN_FILTER, gl2.LINEAR)
-
-  gl2.bindTexture(gl2.TEXTURE_2D, null)
+  try {
+    gl2.pixelStorei(gl2.UNPACK_FLIP_Y_WEBGL, true)
+    gl2.bindTexture(gl2.TEXTURE_2D, texture)
+    if (texture.image && texture.image.width > 0) {
+      gl2.texImage2D(gl2.TEXTURE_2D, 0, gl2.RGBA, gl2.RGBA, gl2.UNSIGNED_BYTE, texture.image)
+    } else {
+      gl2.texImage2D(gl2.TEXTURE_2D, 0, gl2.RGBA, 1, 1, 0, gl2.RGBA, gl2.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]))
+    }
+    gl2.texParameteri(gl2.TEXTURE_2D, gl2.TEXTURE_MAG_FILTER, gl2.LINEAR)
+    gl2.texParameteri(gl2.TEXTURE_2D, gl2.TEXTURE_MIN_FILTER, gl2.LINEAR)
+    gl2.bindTexture(gl2.TEXTURE_2D, null)
+  } catch (e) {
+    try {
+      gl2.bindTexture(gl2.TEXTURE_2D, texture)
+      gl2.texImage2D(gl2.TEXTURE_2D, 0, gl2.RGBA, 1, 1, 0, gl2.RGBA, gl2.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]))
+      gl2.texParameteri(gl2.TEXTURE_2D, gl2.TEXTURE_MAG_FILTER, gl2.LINEAR)
+      gl2.texParameteri(gl2.TEXTURE_2D, gl2.TEXTURE_MIN_FILTER, gl2.LINEAR)
+      gl2.bindTexture(gl2.TEXTURE_2D, null)
+    } catch (e2) {}
+  }
 }
+
+var thingsTexturePending = 0
 var wallTexture = Array()
 var floorTexture = Array()
 var ceilingTexture = Array()
@@ -170,7 +200,7 @@ function initTexture () {
   bindTexture(20, 2, 'img/cabinet/cabinet2.jpg')
   bindTexture(20, 3, 'img/cabinet/cabinet3.jpg')
   bindTexture(20, 4, 'img/cabinet/cabinet4.jpg')
-  bindTexture(20, 4, 'img/cabinet/cabinet5.jpg')
+  bindTexture(20, 5, 'img/cabinet/cabinet5.jpg')
 
   bindTexture(21, 0, 'img/sofa/sofa0.jpg')
   bindTexture(21, 1, 'img/sofa/sofa1.jpg')
@@ -347,7 +377,7 @@ function initTexture () {
   bindTexture2(20, 2, 'img/cabinet/cabinet2.jpg')
   bindTexture2(20, 3, 'img/cabinet/cabinet3.jpg')
   bindTexture2(20, 4, 'img/cabinet/cabinet4.jpg')
-  bindTexture2(20, 4, 'img/cabinet/cabinet5.jpg')
+  bindTexture2(20, 5, 'img/cabinet/cabinet5.jpg')
 
   bindTexture2(21, 0, 'img/sofa/sofa0.jpg')
   bindTexture2(21, 1, 'img/sofa/sofa1.jpg')
@@ -440,21 +470,24 @@ function initTexture () {
   bindTexture2(37, 4, 'img/frame/frame4.jpg')
 
   bindTexture2(38, 0, 'img/door/door.jpg')
-  for (var k = 1; k <= numofTVchannel; k++) {
-    for (var i = 1; i <= PicturesOfChannel[k]; i++) {
-      initTVTexture(k, i)
-    }
-  }
+  // TV 频道帧改为按需加载，避免启动时一次性请求上千张图片导致卡住
 }
 
 // bindTexture 
 // num1 为物体序号
 // num2 为贴图序号
 function bindTexture (num1, num2, shape) {
+  if (ThingsTextureLoad[num1][num2] !== false) {
+    thingsTexturePending++
+  }
   ThingsTextureLoad[num1][num2] = false
   ThingsTexture[num1][num2] = gl.createTexture()
   ThingsTexture[num1][num2].image = new Image()
   ThingsTexture[num1][num2].image.onload = function () {
+    handleLoadedTexture(ThingsTexture[num1][num2])
+    ThingsTextureLoad[num1][num2] = true
+  }
+  ThingsTexture[num1][num2].image.onerror = function () {
     handleLoadedTexture(ThingsTexture[num1][num2])
     ThingsTextureLoad[num1][num2] = true
   }
@@ -466,6 +499,9 @@ function bindTexture2 (num1, num2, shape) {
   ThingsTexture2[num1][num2] = gl2.createTexture()
   ThingsTexture2[num1][num2].image = new Image()
   ThingsTexture2[num1][num2].image.onload = function () {
+    handleLoadedTexture2(ThingsTexture2[num1][num2])
+  }
+  ThingsTexture2[num1][num2].image.onerror = function () {
     handleLoadedTexture2(ThingsTexture2[num1][num2])
   }
 
@@ -480,6 +516,9 @@ function bindWallTexture (num, shape) {
   wallTexture[num].image.onload = function () {
     handleLoadedTexture(wallTexture[num])
   }
+  wallTexture[num].image.onerror = function () {
+    handleLoadedTexture(wallTexture[num])
+  }
 
   wallTexture[num].image.src = shape
 }
@@ -490,6 +529,9 @@ function bindFloorTexture (num, shape) {
   floorTexture[num].image.onload = function () {
     handleLoadedTexture(floorTexture[num])
   }
+  floorTexture[num].image.onerror = function () {
+    handleLoadedTexture(floorTexture[num])
+  }
 
   floorTexture[num].image.src = shape
 }
@@ -497,6 +539,9 @@ function bindCeilingTexture (num, shape) {
   ceilingTexture[num] = gl.createTexture()
   ceilingTexture[num].image = new Image()
   ceilingTexture[num].image.onload = function () {
+    handleLoadedTexture(ceilingTexture[num])
+  }
+  ceilingTexture[num].image.onerror = function () {
     handleLoadedTexture(ceilingTexture[num])
   }
 
@@ -509,14 +554,30 @@ function bindDoorTexture (num, shape) {
   doorTexture[num].image.onload = function () {
     handleLoadedTexture(doorTexture[num])
   }
+  doorTexture[num].image.onerror = function () {
+    handleLoadedTexture(doorTexture[num])
+  }
 
   doorTexture[num].image.src = shape
 }
 function initTVTexture (channel, num) {
+  if (!num || num < 1) return
+  if (tvTexture[channel][num] && (tvTexture[channel][num].loading || TextureLoad[channel][num])) return
   TextureLoad[channel][num] = false
   tvTexture[channel][num] = gl.createTexture()
+  tvTexture[channel][num].loading = true
   tvTexture[channel][num].image = new Image()
   tvTexture[channel][num].image.onload = function () {
+    handleLoadedTexture(tvTexture[channel][num])
+    tvTexture[channel][num].loading = false
+    TextureLoad[channel][num] = true
+    if (typeof change !== 'undefined' && change[channel] === num) {
+      onloadTVtexture[channel] = tvTexture[channel][num]
+    }
+  }
+  tvTexture[channel][num].image.onerror = function () {
+    handleLoadedTexture(tvTexture[channel][num])
+    tvTexture[channel][num].loading = false
     TextureLoad[channel][num] = true
   }
   tvTexture[channel][num].image.src = 'img/TV-images/TV_' + channel + '/TV_' + channel + '_' + num + '.jpg'

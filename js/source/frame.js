@@ -3,6 +3,7 @@ var viewLayoutLeft = 20
 var viewLayoutTop = 150
 var viewLayoutWidth = 750
 var viewLayoutHeight = 450
+var sidebarScaleCurrent = 1
 
 function setBox (id, left, top, width, height) {
   var el = document.getElementById(id)
@@ -24,15 +25,46 @@ function setBox (id, left, top, width, height) {
   }
 }
 
+function applySliderbarScale (sidebarLeft, scale) {
+  var designSidebarW = 240
+  var designSidebarH = 590
+  var sliderbar = document.getElementById('sliderbar')
+  if (!sliderbar) return
+
+  sidebarScaleCurrent = scale
+  sliderbar.style.left = sidebarLeft + 'px'
+  sliderbar.style.top = '8px'
+  sliderbar.style.width = designSidebarW + 'px'
+  sliderbar.style.height = designSidebarH + 'px'
+  sliderbar.style.backgroundSize = designSidebarW + 'px ' + designSidebarH + 'px'
+  sliderbar.style.zoom = ''
+  sliderbar.style.opacity = '1'
+  sliderbar.style.visibility = 'visible'
+  sliderbar.style.transformOrigin = 'top left'
+  sliderbar.style.webkitTransformOrigin = 'top left'
+  sliderbar.style.transform = 'scale(' + scale + ')'
+  sliderbar.style.webkitTransform = 'scale(' + scale + ')'
+  sliderleft = sidebarLeft
+}
+
 function refreshwebsite () {
   var bodyW = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth
   var bodyH = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
 
   var sideMargin = 16
   var gap = 12
-  var sidebarW = 240
   var topChrome = 150
   var bottomChrome = 40
+
+  // 右侧菜单按设计稿 240×590 等比放大，随窗口可用空间变化
+  var designSidebarW = 240
+  var designSidebarH = 590
+  var availSidebarH = Math.max(320, bodyH - 16)
+  var availSidebarW = Math.max(240, Math.floor(bodyW * 0.30))
+  var sidebarScale = Math.min(availSidebarW / designSidebarW, availSidebarH / designSidebarH)
+  if (sidebarScale < 0.85) sidebarScale = 0.85
+  if (sidebarScale > 1.85) sidebarScale = 1.85
+  var sidebarW = Math.floor(designSidebarW * sidebarScale)
 
   var viewW = Math.max(320, Math.floor(bodyW - sidebarW - sideMargin * 2 - gap))
   var viewH = Math.max(240, Math.floor(bodyH - topChrome - bottomChrome))
@@ -55,19 +87,42 @@ function refreshwebsite () {
   }
 
   setBox('viewload', viewLeft, viewTop, viewW, viewH)
-  // 标题/按钮栏随主视图变宽，侧边栏保持素材原始高度，避免背景图平铺重复
   setBox('titlepicture', viewLeft, 8, viewW, 40)
+  var titleEl = document.getElementById('titlepicture')
+  if (titleEl) {
+    titleEl.style.backgroundSize = 'auto 100%'
+    titleEl.style.backgroundPosition = 'left center'
+    titleEl.style.backgroundRepeat = 'no-repeat'
+  }
   setBox('buttonbar', viewLeft, 55, viewW, 90)
-  setBox('sliderbar', sidebarLeft, 8, sidebarW, 590)
 
-  setBox('input', viewLeft + 30, 65)
-  setBox('promptAdd', sidebarLeft + 50, 140)
+  applySliderbarScale(sidebarLeft, sidebarScale)
+
+  var inputLeft = viewLeft + 30
+  setBox('input', inputLeft, 65)
+  // 右侧帮助/输入/输出/测试 贴按钮栏右缘排布
+  var btnSize = 64
+  var btnGap = 6
+  var btnPitch = btnSize + btnGap
+  var rightEdge = viewW - (inputLeft - viewLeft) // 相对 #input 的按钮栏右边界
+  var rightMargin = 28
+  var xTest = rightEdge - rightMargin - btnSize
+  var xOutput = xTest - btnPitch
+  var xInputBtn = xOutput - btnPitch
+  var xHelp = xInputBtn - btnPitch
+  setBox('help', xHelp)
+  setBox('buttonInput', xInputBtn)
+  setBox('buttonOutput', xOutput)
+  setBox('testmode', xTest)
+  setBox('helpText', xHelp)
+  setBox('buttonInputText', xInputBtn)
+  setBox('buttonOutputText', xOutput)
+  setBox('promptAdd', sidebarLeft + Math.floor(50 * sidebarScale), Math.floor(140 * sidebarScale))
   setBox('caption', viewLeft, viewTop + viewH + 8, Math.max(viewW + gap + sidebarW, 600), 30)
 
   setBox('inputstream', Math.max(sideMargin, Math.floor(bodyW / 2 - 300)), Math.floor(bodyH / 2 - 200))
   setBox('outputstream', Math.max(sideMargin, Math.floor(bodyW / 2 - 300)), Math.floor(bodyH / 2 - 200))
 
-  // 贴在 3D 视图右上角（原先按页面中心定位，自适应布局后会偏）
   setBox('thingsinformation', viewLeft + viewW - 200, viewTop)
   setBox('thingsinformationText', viewLeft + viewW - 185, viewTop + 30)
 
@@ -92,15 +147,22 @@ function refreshwebsite () {
 }
 
 function framedisplay () {
+  // 先算好最终尺寸，再显示（不做 transform 入场动画，避免把缩放盖掉或透明度卡住）
+  refreshwebsite()
+
   document.getElementById('view').style.display = 'block'
   ButtonEffect('view', 'fadeInUp')
   document.getElementById('titlepicture').style.display = 'block'
   ButtonEffect('titlepicture', 'bounceInDown')
   document.getElementById('buttonbar').style.display = 'block'
   ButtonEffect('buttonbar', 'bounceInLeft')
-  document.getElementById('sliderbar').style.display = 'block'
-  ButtonEffect('sliderbar', 'rotateInDownLeft')
-  // document.getElementById("button").style.display='block'
+
+  var sliderbar = document.getElementById('sliderbar')
+  sliderbar.style.display = 'block'
+  sliderbar.style.opacity = '1'
+  sliderbar.style.visibility = 'visible'
+  // 再应用一次缩放，保证可见且尺寸正确
+  refreshwebsite()
 
   document.getElementById('input').style.display = 'block'
   ButtonEffect('input', 'flipInX')
@@ -120,8 +182,6 @@ function framedisplay () {
     ButtonEffect('openmap', 'flipInX')
   }
   document.getElementById('loadbar').style.display = 'none'
-
-  refreshwebsite()
 }
 
 function viewclose () {

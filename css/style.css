@@ -20,6 +20,12 @@ html, body {
 	background-repeat: no-repeat;
 }
 
+/* 顶部标题图按高度等比缩放，避免随分辨率横向拉伸变形 */
+#titlepicture {
+	background-position: left center;
+	background-size: auto 100%;
+}
+
 #loadingtext {
 	text-align: center;
 	font-size: 1.5em;

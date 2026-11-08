@@ -31,6 +31,9 @@ function draw (num) {
     gl.uniform3f(shaderProgram.ambientColorUniform, 0.45, 0.45, 0.45)
     if (typeof bindShadowUniforms === 'function') bindShadowUniforms(false)
   }
+  if (typeof bindMaterialMaps === 'function') {
+    bindMaterialMaps(typeof materialKindForType === 'function' ? materialKindForType(num) : null)
+  }
   for (var i = 1; i <= numThings[num]; i++) {
     if (flagThings[num][i]) {
       mvPushMatrix()
@@ -42,15 +45,17 @@ function draw (num) {
     }
   }
   if (framePass) {
-    gl.uniform3f(shaderProgram.ambientColorUniform, 0.12, 0.12, 0.12)
+    gl.uniform3f(shaderProgram.ambientColorUniform, 0.17, 0.17, 0.17)
     if (typeof bindShadowUniforms === 'function') {
       bindShadowUniforms(!!(lighting && typeof sceneLights !== 'undefined' && sceneLights.length > 0))
     }
   }
+  if (typeof bindMaterialMaps === 'function') bindMaterialMaps(null)
 }
 
 function drawTV (i, channel) {
   gl.uniform1i(shaderProgram.useLightingUniform, 0)
+  if (typeof bindMaterialMaps === 'function') bindMaterialMaps(null)
   mvPushMatrix()
   mat4.translate(mvMatrix, translateVector[2][i])
   mat4.translate(mvMatrix, [parseFloat(translateMatrix[2][i][12]), parseFloat(translateMatrix[2][i][13]), parseFloat(translateMatrix[2][i][14])])
@@ -71,6 +76,7 @@ function drawTV (i, channel) {
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, TVScreenVertexPositionBuffer[channel].numItems)
   mvPopMatrix()
   gl.uniform1i(shaderProgram.useLightingUniform, lighting ? 1 : 0)
+  if (typeof bindMaterialMaps === 'function') bindMaterialMaps('plastic')
 }
 
 function draw2 (num) {

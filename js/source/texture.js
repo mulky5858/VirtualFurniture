@@ -8,7 +8,8 @@ function handleLoadedTexture (texture) {
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]))
     }
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
+    gl.generateMipmap(gl.TEXTURE_2D)
     gl.bindTexture(gl.TEXTURE_2D, null)
     texture.webglUploaded = true
   } catch (e) {
@@ -80,6 +81,8 @@ for (var i = 0; i <= NumberOfObjects - 1; i++)
 }
 
 function initTexture () {
+  if (typeof initMaterialTextures === 'function') initMaterialTextures()
+
   bindDoorTexture(0, 'img/door.jpg')
 
   bindWallTexture(0, 'img/wall/wall0.jpg')

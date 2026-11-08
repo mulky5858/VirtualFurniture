@@ -33,6 +33,7 @@ function builddoor (j) {
   )
 }
 function rebuilddoor () {
+  if (typeof bindMaterialMaps === 'function') bindMaterialMaps('wood')
   for (var j = 0; j <= 50; j++) {
     if (DoorPresentAngle[j] > 1) {
       mvPushMatrix()
@@ -51,6 +52,7 @@ function rebuilddoor () {
       mvPopMatrix()
     }
   }
+  if (typeof bindMaterialMaps === 'function') bindMaterialMaps(null)
 }
 
 function buildfloor (x, z) {
@@ -65,6 +67,7 @@ function buildfloor (x, z) {
 }
 
 function rebuildfloor () {
+  if (typeof bindMaterialMaps === 'function') bindMaterialMaps('wood')
   for (var i = 0; i <= 19; i++)
     for (var j = 0; j <= 19; j++) {
       if (mapdiv[i][j]) {
@@ -80,6 +83,7 @@ function rebuildfloor () {
         mvPopMatrix()
       }
   }
+  if (typeof bindMaterialMaps === 'function') bindMaterialMaps(null)
 }
 
 function buildceiling (x, z) {
@@ -94,6 +98,7 @@ function buildceiling (x, z) {
 }
 
 function rebuildceiling () {
+  if (typeof bindMaterialMaps === 'function') bindMaterialMaps('ceiling')
   for (var i = 0; i <= 19; i++)
     for (var j = 0; j <= 19; j++) {
       if (!viewstyle) {
@@ -124,6 +129,7 @@ function rebuildceiling () {
         }
       }
   }
+  if (typeof bindMaterialMaps === 'function') bindMaterialMaps(null)
 }
 
 function quad (a, b, c, d, ua, va, ub, vb, uc, vc, ud, vd) {
@@ -185,6 +191,7 @@ function buildwall (x, z) {
 }
 
 function rebuildwall () {
+  if (typeof bindMaterialMaps === 'function') bindMaterialMaps('plaster')
   for (var i = 0; i <= 19; i++)
     for (var j = 0; j <= 19; j++) {
       if (!mapdiv[i][j] && (shouldbuildwall(i, j))) {
@@ -205,6 +212,7 @@ function rebuildwall () {
         mvPopMatrix()
       }
   }
+  if (typeof bindMaterialMaps === 'function') bindMaterialMaps(null)
 }
 
 function shouldbuildwall (i, j) {

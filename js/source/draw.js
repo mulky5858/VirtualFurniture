@@ -8,8 +8,9 @@ function drawScene () {
   gl.uniform1i(shaderProgram.useLightingUniform, 0)
   gl.uniform1i(shaderProgram.useTexturesUniform, 1)
 
-  // 无灯具时只靠微弱环境光；有灯时由灯具点光照明
-  gl.uniform3f(shaderProgram.ambientColorUniform, 0.12, 0.12, 0.12)
+  // 略提高环境光，避免背光死黑；高光/法线负责木器质感
+  gl.uniform3f(shaderProgram.ambientColorUniform, 0.17, 0.17, 0.17)
+  if (typeof bindMaterialMaps === 'function') bindMaterialMaps(null)
 
   for (var k = 1; k <= numofTVchannel; k++) {
     gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer[k])
@@ -44,7 +45,8 @@ function drawScene () {
     gl.useProgram(shaderProgram)
     gl.uniform1i(shaderProgram.samplerUniform, 0)
     gl.uniform1i(shaderProgram.useTexturesUniform, 1)
-    gl.uniform3f(shaderProgram.ambientColorUniform, 0.12, 0.12, 0.12)
+    gl.uniform3f(shaderProgram.ambientColorUniform, 0.17, 0.17, 0.17)
+    if (typeof bindMaterialMaps === 'function') bindMaterialMaps(null)
   }
 
   bindSceneLightsEyeSpace(mvMatrix)

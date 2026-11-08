@@ -73,6 +73,12 @@ function createProgram (ngl, fragmentShaderID, vertexShaderID) {
     program.pointLightingColorUniforms[li] = ngl.getUniformLocation(program, 'uPointLightingColors[' + li + ']')
   }
 
+  program.useMaterialMapsUniform = ngl.getUniformLocation(program, 'uUseMaterialMaps')
+  program.normalMapUniform = ngl.getUniformLocation(program, 'uNormalMap')
+  program.roughnessMapUniform = ngl.getUniformLocation(program, 'uRoughnessMap')
+  program.specularStrengthUniform = ngl.getUniformLocation(program, 'uSpecularStrength')
+  program.shininessUniform = ngl.getUniformLocation(program, 'uShininess')
+
   return program
 }
 
@@ -97,6 +103,8 @@ function attachShadowUniforms (ngl, program) {
 }
 
 function initShaders (ngl) {
+  // 法线贴图 cotangent frame 依赖屏幕空间导数
+  ngl.getExtension('OES_standard_derivatives')
   // perVertexProgram = createProgram(ngl,"per-vertex-lighting-fs", "per-vertex-lighting-vs")
   perFragmentProgram = createProgram(ngl, 'per-fragment-lighting-fs', 'per-fragment-lighting-vs')
   attachShadowUniforms(ngl, perFragmentProgram)

@@ -1,0 +1,725 @@
+[
+  {
+    "id": 0,
+    "slug": "lamp",
+    "nameZh": "落地灯",
+    "model": "model/lamp.json",
+    "kind": "metal",
+    "srcAlbedos": [
+      "img/objects/00_lamp/albedo0.jpg",
+      "img/objects/00_lamp/albedo1.jpg",
+      "img/objects/00_lamp/albedo2.jpg"
+    ],
+    "specular": 1.05,
+    "shininess": 72,
+    "normalStrength": 1.6,
+    "roughBase": 0.25,
+    "roughAmp": 0.18,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 1,
+    "slug": "sofa",
+    "nameZh": "三人沙发",
+    "model": "model/sofa.json",
+    "kind": "fabric",
+    "srcAlbedos": [
+      "img/objects/01_sofa/albedo0.jpg",
+      "img/objects/01_sofa/albedo1.jpg",
+      "img/objects/01_sofa/albedo2.jpg",
+      "img/objects/01_sofa/albedo3.jpg",
+      "img/objects/01_sofa/albedo4.jpg"
+    ],
+    "specular": 0.16,
+    "shininess": 10,
+    "normalStrength": 3.0,
+    "roughBase": 0.8,
+    "roughAmp": 0.16,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 2,
+    "slug": "tv",
+    "nameZh": "电视",
+    "model": "model/TV.json",
+    "kind": "plastic",
+    "srcAlbedos": [
+      "img/objects/02_tv/albedo0.jpg"
+    ],
+    "specular": 0.48,
+    "shininess": 28,
+    "normalStrength": 1.4,
+    "roughBase": 0.4,
+    "roughAmp": 0.22,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 3,
+    "slug": "coffee_table",
+    "nameZh": "茶几",
+    "model": "model/CoffeeTable.json",
+    "kind": "wood",
+    "srcAlbedos": [
+      "img/objects/03_coffee_table/albedo0.jpg",
+      "img/objects/03_coffee_table/albedo1.jpg",
+      "img/objects/03_coffee_table/albedo2.jpg",
+      "img/objects/03_coffee_table/albedo3.jpg",
+      "img/objects/03_coffee_table/albedo4.jpg",
+      "img/objects/03_coffee_table/albedo5.jpg"
+    ],
+    "specular": 0.72,
+    "shininess": 40,
+    "normalStrength": 2.4,
+    "roughBase": 0.45,
+    "roughAmp": 0.28,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 4,
+    "slug": "shelf",
+    "nameZh": "架子",
+    "model": "model/shelf.json",
+    "kind": "wood",
+    "srcAlbedos": [
+      "img/objects/04_shelf/albedo0.jpg",
+      "img/objects/04_shelf/albedo1.jpg",
+      "img/objects/04_shelf/albedo2.jpg",
+      "img/objects/04_shelf/albedo3.jpg",
+      "img/objects/04_shelf/albedo4.jpg",
+      "img/objects/04_shelf/albedo5.jpg"
+    ],
+    "specular": 0.65,
+    "shininess": 36,
+    "normalStrength": 2.2,
+    "roughBase": 0.48,
+    "roughAmp": 0.26,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 5,
+    "slug": "vase",
+    "nameZh": "花瓶",
+    "model": "model/vase.json",
+    "kind": "ceramic",
+    "srcAlbedos": [
+      "img/objects/05_vase/albedo0.jpg"
+    ],
+    "specular": 0.9,
+    "shininess": 64,
+    "normalStrength": 1.7,
+    "roughBase": 0.28,
+    "roughAmp": 0.2,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 6,
+    "slug": "teapot",
+    "nameZh": "茶壶",
+    "model": "model/Teapot.json",
+    "kind": "ceramic",
+    "srcAlbedos": [
+      "img/objects/06_teapot/albedo0.jpg"
+    ],
+    "specular": 0.88,
+    "shininess": 60,
+    "normalStrength": 1.6,
+    "roughBase": 0.3,
+    "roughAmp": 0.2,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 7,
+    "slug": "ac",
+    "nameZh": "空调",
+    "model": "model/Airconditioning.json",
+    "kind": "plastic",
+    "srcAlbedos": [
+      "img/objects/07_ac/albedo0.jpg"
+    ],
+    "specular": 0.5,
+    "shininess": 30,
+    "normalStrength": 1.3,
+    "roughBase": 0.42,
+    "roughAmp": 0.2,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 8,
+    "slug": "wardrobe",
+    "nameZh": "衣柜",
+    "model": "model/wardrobe.json",
+    "kind": "wood",
+    "srcAlbedos": [
+      "img/objects/08_wardrobe/albedo0.jpg",
+      "img/objects/08_wardrobe/albedo1.jpg",
+      "img/objects/08_wardrobe/albedo2.jpg",
+      "img/objects/08_wardrobe/albedo3.jpg",
+      "img/objects/08_wardrobe/albedo4.jpg",
+      "img/objects/08_wardrobe/albedo5.jpg"
+    ],
+    "specular": 0.7,
+    "shininess": 42,
+    "normalStrength": 2.3,
+    "roughBase": 0.46,
+    "roughAmp": 0.26,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 9,
+    "slug": "bed",
+    "nameZh": "床",
+    "model": "model/bed.json",
+    "kind": "fabric",
+    "srcAlbedos": [
+      "img/objects/09_bed/albedo0.jpg"
+    ],
+    "specular": 0.2,
+    "shininess": 12,
+    "normalStrength": 2.6,
+    "roughBase": 0.75,
+    "roughAmp": 0.15,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 10,
+    "slug": "nightstand",
+    "nameZh": "床头柜",
+    "model": "model/cabinet.json",
+    "kind": "wood",
+    "srcAlbedos": [
+      "img/objects/10_nightstand/albedo0.jpg",
+      "img/objects/10_nightstand/albedo1.jpg",
+      "img/objects/10_nightstand/albedo2.jpg",
+      "img/objects/10_nightstand/albedo3.jpg",
+      "img/objects/10_nightstand/albedo4.jpg",
+      "img/objects/10_nightstand/albedo5.jpg"
+    ],
+    "specular": 0.68,
+    "shininess": 38,
+    "normalStrength": 2.2,
+    "roughBase": 0.47,
+    "roughAmp": 0.26,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 11,
+    "slug": "switch",
+    "nameZh": "开关",
+    "model": "model/switch.json",
+    "kind": "plastic",
+    "srcAlbedos": [
+      "img/objects/11_switch/albedo0.jpg"
+    ],
+    "specular": 0.4,
+    "shininess": 24,
+    "normalStrength": 1.2,
+    "roughBase": 0.5,
+    "roughAmp": 0.18,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 12,
+    "slug": "telephone",
+    "nameZh": "电话",
+    "model": "model/telephone.json",
+    "kind": "plastic",
+    "srcAlbedos": [
+      "img/objects/12_telephone/albedo0.jpg"
+    ],
+    "specular": 0.45,
+    "shininess": 26,
+    "normalStrength": 1.3,
+    "roughBase": 0.45,
+    "roughAmp": 0.2,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 13,
+    "slug": "pc",
+    "nameZh": "电脑",
+    "model": "model/PC.json",
+    "kind": "plastic",
+    "srcAlbedos": [
+      "img/objects/13_pc/albedo0.jpg"
+    ],
+    "specular": 0.5,
+    "shininess": 30,
+    "normalStrength": 1.35,
+    "roughBase": 0.4,
+    "roughAmp": 0.2,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 14,
+    "slug": "table3",
+    "nameZh": "桌子",
+    "model": "model/table3.json",
+    "kind": "wood",
+    "srcAlbedos": [
+      "img/objects/14_table3/albedo0.jpg",
+      "img/objects/14_table3/albedo1.jpg",
+      "img/objects/14_table3/albedo2.jpg",
+      "img/objects/14_table3/albedo3.jpg",
+      "img/objects/14_table3/albedo4.jpg",
+      "img/objects/14_table3/albedo5.jpg"
+    ],
+    "specular": 0.72,
+    "shininess": 40,
+    "normalStrength": 2.4,
+    "roughBase": 0.45,
+    "roughAmp": 0.28,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 15,
+    "slug": "lamp2",
+    "nameZh": "吊灯",
+    "model": "model/lamp2.json",
+    "kind": "metal",
+    "srcAlbedos": [
+      "img/objects/15_lamp2/albedo0.jpg",
+      "img/objects/15_lamp2/albedo1.jpg",
+      "img/objects/15_lamp2/albedo2.jpg"
+    ],
+    "specular": 1.0,
+    "shininess": 68,
+    "normalStrength": 1.5,
+    "roughBase": 0.26,
+    "roughAmp": 0.18,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 16,
+    "slug": "bed2",
+    "nameZh": "床2",
+    "model": "model/bed2.json",
+    "kind": "fabric",
+    "srcAlbedos": [
+      "img/objects/16_bed2/albedo0.jpg"
+    ],
+    "specular": 0.2,
+    "shininess": 12,
+    "normalStrength": 2.6,
+    "roughBase": 0.75,
+    "roughAmp": 0.15,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 17,
+    "slug": "ac2",
+    "nameZh": "空调2",
+    "model": "model/Airconditioning2.json",
+    "kind": "plastic",
+    "srcAlbedos": [
+      "img/objects/17_ac2/albedo0.jpg"
+    ],
+    "specular": 0.5,
+    "shininess": 30,
+    "normalStrength": 1.3,
+    "roughBase": 0.42,
+    "roughAmp": 0.2,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 18,
+    "slug": "ac3",
+    "nameZh": "空调3",
+    "model": "model/Airconditioning3.json",
+    "kind": "plastic",
+    "srcAlbedos": [
+      "img/objects/18_ac3/albedo0.jpg"
+    ],
+    "specular": 0.5,
+    "shininess": 30,
+    "normalStrength": 1.3,
+    "roughBase": 0.42,
+    "roughAmp": 0.2,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 19,
+    "slug": "coffee_table2",
+    "nameZh": "茶几2",
+    "model": "model/CoffeeTable2.json",
+    "kind": "wood",
+    "srcAlbedos": [
+      "img/objects/19_coffee_table2/albedo0.jpg",
+      "img/objects/19_coffee_table2/albedo1.jpg",
+      "img/objects/19_coffee_table2/albedo2.jpg",
+      "img/objects/19_coffee_table2/albedo3.jpg",
+      "img/objects/19_coffee_table2/albedo4.jpg",
+      "img/objects/19_coffee_table2/albedo5.jpg"
+    ],
+    "specular": 0.72,
+    "shininess": 40,
+    "normalStrength": 2.4,
+    "roughBase": 0.45,
+    "roughAmp": 0.28,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 20,
+    "slug": "cabinet2",
+    "nameZh": "鞋柜",
+    "model": "model/cabinet2.json",
+    "kind": "wood",
+    "srcAlbedos": [
+      "img/objects/20_cabinet2/albedo0.jpg",
+      "img/objects/20_cabinet2/albedo1.jpg",
+      "img/objects/20_cabinet2/albedo2.jpg",
+      "img/objects/20_cabinet2/albedo3.jpg",
+      "img/objects/20_cabinet2/albedo4.jpg",
+      "img/objects/20_cabinet2/albedo5.jpg"
+    ],
+    "specular": 0.68,
+    "shininess": 38,
+    "normalStrength": 2.2,
+    "roughBase": 0.47,
+    "roughAmp": 0.26,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 21,
+    "slug": "sofa2",
+    "nameZh": "单人沙发",
+    "model": "model/sofa2.json",
+    "kind": "fabric",
+    "srcAlbedos": [
+      "img/objects/21_sofa2/albedo0.jpg",
+      "img/objects/21_sofa2/albedo1.jpg",
+      "img/objects/21_sofa2/albedo2.jpg",
+      "img/objects/21_sofa2/albedo3.jpg",
+      "img/objects/21_sofa2/albedo4.jpg"
+    ],
+    "specular": 0.16,
+    "shininess": 10,
+    "normalStrength": 3.0,
+    "roughBase": 0.8,
+    "roughAmp": 0.16,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 22,
+    "slug": "sofa3",
+    "nameZh": "躺椅沙发",
+    "model": "model/sofa3.json",
+    "kind": "fabric",
+    "srcAlbedos": [
+      "img/objects/22_sofa3/albedo0.jpg",
+      "img/objects/22_sofa3/albedo1.jpg",
+      "img/objects/22_sofa3/albedo2.jpg",
+      "img/objects/22_sofa3/albedo3.jpg",
+      "img/objects/22_sofa3/albedo4.jpg"
+    ],
+    "specular": 0.16,
+    "shininess": 10,
+    "normalStrength": 3.0,
+    "roughBase": 0.8,
+    "roughAmp": 0.16,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 23,
+    "slug": "macbook",
+    "nameZh": "笔记本",
+    "model": "model/macbook.json",
+    "kind": "metal",
+    "srcAlbedos": [
+      "img/objects/23_macbook/albedo0.jpg"
+    ],
+    "specular": 0.95,
+    "shininess": 64,
+    "normalStrength": 1.4,
+    "roughBase": 0.3,
+    "roughAmp": 0.16,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 24,
+    "slug": "chair",
+    "nameZh": "塑料椅",
+    "model": "model/chair.json",
+    "kind": "plastic",
+    "srcAlbedos": [
+      "img/objects/24_chair/albedo0.jpg",
+      "img/objects/24_chair/albedo1.jpg",
+      "img/objects/24_chair/albedo2.jpg",
+      "img/objects/24_chair/albedo3.jpg",
+      "img/objects/24_chair/albedo4.jpg"
+    ],
+    "specular": 0.52,
+    "shininess": 32,
+    "normalStrength": 1.5,
+    "roughBase": 0.38,
+    "roughAmp": 0.22,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 25,
+    "slug": "chair2",
+    "nameZh": "椅子2",
+    "model": "model/chair2.json",
+    "kind": "plastic",
+    "srcAlbedos": [
+      "img/objects/25_chair2/albedo0.jpg",
+      "img/objects/25_chair2/albedo1.jpg",
+      "img/objects/25_chair2/albedo2.jpg",
+      "img/objects/25_chair2/albedo3.jpg",
+      "img/objects/25_chair2/albedo4.jpg"
+    ],
+    "specular": 0.52,
+    "shininess": 32,
+    "normalStrength": 1.5,
+    "roughBase": 0.38,
+    "roughAmp": 0.22,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 26,
+    "slug": "chair3",
+    "nameZh": "椅子3",
+    "model": "model/chair3.json",
+    "kind": "plastic",
+    "srcAlbedos": [
+      "img/objects/26_chair3/albedo0.jpg",
+      "img/objects/26_chair3/albedo1.jpg",
+      "img/objects/26_chair3/albedo2.jpg",
+      "img/objects/26_chair3/albedo3.jpg",
+      "img/objects/26_chair3/albedo4.jpg"
+    ],
+    "specular": 0.52,
+    "shininess": 32,
+    "normalStrength": 1.5,
+    "roughBase": 0.38,
+    "roughAmp": 0.22,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 27,
+    "slug": "wardrobe2",
+    "nameZh": "衣柜2",
+    "model": "model/wardrobe2.json",
+    "kind": "wood",
+    "srcAlbedos": [
+      "img/objects/27_wardrobe2/albedo0.jpg",
+      "img/objects/27_wardrobe2/albedo1.jpg",
+      "img/objects/27_wardrobe2/albedo2.jpg",
+      "img/objects/27_wardrobe2/albedo3.jpg",
+      "img/objects/27_wardrobe2/albedo4.jpg",
+      "img/objects/27_wardrobe2/albedo5.jpg"
+    ],
+    "specular": 0.7,
+    "shininess": 42,
+    "normalStrength": 2.3,
+    "roughBase": 0.46,
+    "roughAmp": 0.26,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 28,
+    "slug": "wardrobe3",
+    "nameZh": "展示柜",
+    "model": "model/wardrobe3.json",
+    "kind": "wood",
+    "srcAlbedos": [
+      "img/objects/28_wardrobe3/albedo0.jpg",
+      "img/objects/28_wardrobe3/albedo1.jpg",
+      "img/objects/28_wardrobe3/albedo2.jpg",
+      "img/objects/28_wardrobe3/albedo3.jpg",
+      "img/objects/28_wardrobe3/albedo4.jpg",
+      "img/objects/28_wardrobe3/albedo5.jpg"
+    ],
+    "specular": 0.7,
+    "shininess": 42,
+    "normalStrength": 2.0,
+    "roughBase": 0.46,
+    "roughAmp": 0.26,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 29,
+    "slug": "vase2",
+    "nameZh": "花瓶2",
+    "model": "model/vase2.json",
+    "kind": "ceramic",
+    "srcAlbedos": [
+      "img/objects/29_vase2/albedo0.jpg"
+    ],
+    "specular": 0.9,
+    "shininess": 64,
+    "normalStrength": 1.7,
+    "roughBase": 0.28,
+    "roughAmp": 0.2,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 30,
+    "slug": "decorations",
+    "nameZh": "装饰1",
+    "model": "model/Decorations.json",
+    "kind": "paper",
+    "srcAlbedos": [
+      "img/objects/30_decorations/albedo0.jpg",
+      "img/objects/30_decorations/albedo1.jpg",
+      "img/objects/30_decorations/albedo2.jpg",
+      "img/objects/30_decorations/albedo3.jpg",
+      "img/objects/30_decorations/albedo4.jpg"
+    ],
+    "specular": 0.12,
+    "shininess": 8,
+    "normalStrength": 1.5,
+    "roughBase": 0.82,
+    "roughAmp": 0.12,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 31,
+    "slug": "decorations2",
+    "nameZh": "装饰2",
+    "model": "model/Decorations2.json",
+    "kind": "paper",
+    "srcAlbedos": [
+      "img/objects/31_decorations2/albedo0.jpg",
+      "img/objects/31_decorations2/albedo1.jpg",
+      "img/objects/31_decorations2/albedo2.jpg",
+      "img/objects/31_decorations2/albedo3.jpg",
+      "img/objects/31_decorations2/albedo4.jpg"
+    ],
+    "specular": 0.12,
+    "shininess": 8,
+    "normalStrength": 1.5,
+    "roughBase": 0.82,
+    "roughAmp": 0.12,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 32,
+    "slug": "decorations3",
+    "nameZh": "装饰3",
+    "model": "model/Decorations3.json",
+    "kind": "paper",
+    "srcAlbedos": [
+      "img/objects/32_decorations3/albedo0.jpg",
+      "img/objects/32_decorations3/albedo1.jpg",
+      "img/objects/32_decorations3/albedo2.jpg",
+      "img/objects/32_decorations3/albedo3.jpg",
+      "img/objects/32_decorations3/albedo4.jpg"
+    ],
+    "specular": 0.12,
+    "shininess": 8,
+    "normalStrength": 1.5,
+    "roughBase": 0.82,
+    "roughAmp": 0.12,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 33,
+    "slug": "books",
+    "nameZh": "书",
+    "model": "model/books.json",
+    "kind": "paper",
+    "srcAlbedos": [
+      "img/objects/33_books/albedo0.jpg"
+    ],
+    "specular": 0.12,
+    "shininess": 8,
+    "normalStrength": 1.6,
+    "roughBase": 0.82,
+    "roughAmp": 0.12,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 34,
+    "slug": "trashcan",
+    "nameZh": "垃圾桶",
+    "model": "model/Trashcan.json",
+    "kind": "metal",
+    "srcAlbedos": [
+      "img/objects/34_trashcan/albedo0.jpg"
+    ],
+    "specular": 1.05,
+    "shininess": 70,
+    "normalStrength": 1.7,
+    "roughBase": 0.24,
+    "roughAmp": 0.16,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 35,
+    "slug": "table",
+    "nameZh": "桌子A",
+    "model": "model/table.json",
+    "kind": "wood",
+    "srcAlbedos": [
+      "img/objects/35_table/albedo0.jpg",
+      "img/objects/35_table/albedo1.jpg",
+      "img/objects/35_table/albedo2.jpg",
+      "img/objects/35_table/albedo3.jpg",
+      "img/objects/35_table/albedo4.jpg",
+      "img/objects/35_table/albedo5.jpg"
+    ],
+    "specular": 0.72,
+    "shininess": 40,
+    "normalStrength": 2.4,
+    "roughBase": 0.45,
+    "roughAmp": 0.28,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 36,
+    "slug": "table2",
+    "nameZh": "桌子B",
+    "model": "model/table2.json",
+    "kind": "wood",
+    "srcAlbedos": [
+      "img/objects/36_table2/albedo0.jpg",
+      "img/objects/36_table2/albedo1.jpg",
+      "img/objects/36_table2/albedo2.jpg",
+      "img/objects/36_table2/albedo3.jpg",
+      "img/objects/36_table2/albedo4.jpg",
+      "img/objects/36_table2/albedo5.jpg"
+    ],
+    "specular": 0.72,
+    "shininess": 40,
+    "normalStrength": 2.4,
+    "roughBase": 0.45,
+    "roughAmp": 0.28,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 37,
+    "slug": "frame",
+    "nameZh": "相框",
+    "model": "model/frame.json",
+    "kind": "paper",
+    "srcAlbedos": [
+      "img/objects/37_frame/albedo0.jpg",
+      "img/objects/37_frame/albedo1.jpg",
+      "img/objects/37_frame/albedo2.jpg",
+      "img/objects/37_frame/albedo3.jpg",
+      "img/objects/37_frame/albedo4.jpg"
+    ],
+    "specular": 0.18,
+    "shininess": 14,
+    "normalStrength": 1.4,
+    "roughBase": 0.7,
+    "roughAmp": 0.14,
+    "skipAlbedoEnhance": true
+  },
+  {
+    "id": 38,
+    "slug": "door",
+    "nameZh": "门",
+    "model": "model/door.json",
+    "kind": "wood",
+    "srcAlbedos": [
+      "img/objects/38_door/albedo0.jpg"
+    ],
+    "specular": 0.65,
+    "shininess": 36,
+    "normalStrength": 2.2,
+    "roughBase": 0.5,
+    "roughAmp": 0.24,
+    "skipAlbedoEnhance": true
+  }
+]

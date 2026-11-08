@@ -76,7 +76,7 @@ function drawTV (i, channel) {
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, TVScreenVertexPositionBuffer[channel].numItems)
   mvPopMatrix()
   gl.uniform1i(shaderProgram.useLightingUniform, lighting ? 1 : 0)
-  if (typeof bindMaterialMaps === 'function') bindMaterialMaps('plastic')
+  if (typeof bindMaterialMaps === 'function') bindMaterialMaps(2)
 }
 
 function draw2 (num) {

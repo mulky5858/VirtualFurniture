@@ -220,43 +220,9 @@ function LoadingAll () {
     return
   }
 
-  loadThings('model/lamp.json', 0)
-  loadThings('model/sofa.json', 1)
-  loadThings('model/TV.json', 2)
-  loadThings('model/CoffeeTable.json', 3)
-  loadThings('model/shelf.json', 4)
-  loadThings('model/vase.json', 5)
-  loadThings('model/Teapot.json', 6)
-  loadThings('model/Airconditioning.json', 7)
-  loadThings('model/wardrobe.json', 8)
-  loadThings('model/bed.json', 9)
-  loadThings('model/cabinet.json', 10)
-  loadThings('model/switch.json', 11)
-  loadThings('model/telephone.json', 12)
-  loadThings('model/PC.json', 13)
-  loadThings('model/table3.json', 14)
-  loadThings('model/lamp2.json', 15)
-  loadThings('model/bed2.json', 16)
-  loadThings('model/Airconditioning2.json', 17)
-  loadThings('model/Airconditioning3.json', 18)
-  loadThings('model/CoffeeTable2.json', 19)
-  loadThings('model/cabinet2.json', 20)
-  loadThings('model/sofa2.json', 21)
-  loadThings('model/sofa3.json', 22)
-  loadThings('model/macbook.json', 23)
-  loadThings('model/chair.json', 24)
-  loadThings('model/chair2.json', 25)
-  loadThings('model/chair3.json', 26)
-  loadThings('model/wardrobe2.json', 27)
-  loadThings('model/wardrobe3.json', 28)
-  loadThings('model/vase2.json', 29)
-  loadThings('model/Decorations.json', 30)
-  loadThings('model/Decorations2.json', 31)
-  loadThings('model/Decorations3.json', 32)
-  loadThings('model/books.json', 33)
-  loadThings('model/Trashcan.json', 34)
-  loadThings('model/table.json', 35)
-  loadThings('model/table2.json', 36)
-  loadThings('model/frame.json', 37)
-  loadThings('model/door.json', 38)
+  if (typeof OBJECTS_CATALOG !== 'undefined') {
+    for (var oi = 0; oi < OBJECTS_CATALOG.length; oi++) {
+      loadThings(OBJECTS_CATALOG[oi].model, OBJECTS_CATALOG[oi].id)
+    }
+  }
 }

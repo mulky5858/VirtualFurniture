@@ -1,16 +1,11 @@
-// 共享材质贴图包：法线 + 粗糙度（按材质类别，而非逐模型 PBR）
-var materialPacks = {
+// 按物体类型的独立材质包（albedo 在 texture.js 经 catalog 加载）
+var objectMaterials = {}
+var roomMaterialPacks = {
   wood: { normal: null, roughness: null, specular: 0.72, shininess: 40.0 },
-  fabric: { normal: null, roughness: null, specular: 0.16, shininess: 10.0 },
-  metal: { normal: null, roughness: null, specular: 1.05, shininess: 72.0 },
-  plastic: { normal: null, roughness: null, specular: 0.48, shininess: 28.0 },
-  ceramic: { normal: null, roughness: null, specular: 0.9, shininess: 64.0 },
-  paper: { normal: null, roughness: null, specular: 0.12, shininess: 8.0 },
   plaster: { normal: null, roughness: null, specular: 0.2, shininess: 12.0 },
   ceiling: { normal: null, roughness: null, specular: 0.18, shininess: 10.0 }
 }
 
-// 关闭材质贴图时仍绑定有效 sampler，避免部分驱动采样未绑定纹理
 var materialFallbackNormal = null
 var materialFallbackRoughness = null
 
@@ -34,49 +29,40 @@ function createSolidTexture (rgba) {
 function ensureMaterialFallbacks () {
   if (!gl) return
   if (!materialFallbackNormal) {
-    // 平坦法线 (0,0,1) → RGB (128,128,255)
     materialFallbackNormal = createSolidTexture([128, 128, 255, 255])
   }
   if (!materialFallbackRoughness) {
-    // 中等粗糙度，避免误开贴图时高光爆掉
     materialFallbackRoughness = createSolidTexture([140, 140, 140, 255])
   }
 }
 
-// 物体类型 → 材质类别
 function materialKindForType (num) {
-  // 灯具、垃圾桶、电话：金属
-  if (num === 0 || num === 15 || num === 12 || num === 34) return 'metal'
-  // 沙发：布艺
-  if (num === 1 || num === 21 || num === 22) return 'fabric'
-  // 电视 / 电脑 / 笔记本 / 空调 / 开关：塑料壳
-  if (num === 2 || num === 7 || num === 11 || num === 13 ||
-      num === 17 || num === 18 || num === 23) return 'plastic'
-  // 花瓶 / 茶壶：陶瓷
-  if (num === 5 || num === 6 || num === 29) return 'ceramic'
-  // 装饰画册 / 书 / 相框：纸质印刷
-  if (num === 30 || num === 31 || num === 32 || num === 33 || num === 37) return 'paper'
-  // 桌、架、柜、床、椅、门：木头
-  if (num === 3 || num === 4 || num === 8 || num === 9 || num === 10 ||
-      num === 14 || num === 16 || num === 19 || num === 20 ||
-      num === 24 || num === 25 || num === 26 || num === 27 || num === 28 ||
-      num === 35 || num === 36 || num === 38) return 'wood'
+  // 返回物体 id（数字）供 bindMaterialMaps 使用；无 catalog 时退回 null
+  if (typeof getObjectCatalogEntry === 'function' && getObjectCatalogEntry(num)) return num
   return null
 }
 
 function isWoodMaterialType (num) {
-  return materialKindForType(num) === 'wood'
+  var e = typeof getObjectCatalogEntry === 'function' ? getObjectCatalogEntry(num) : null
+  return !!(e && e.kind === 'wood')
+}
+
+function resolveMaterialPack (kindOrEnabled) {
+  if (kindOrEnabled === true) return roomMaterialPacks.wood
+  if (typeof kindOrEnabled === 'string') {
+    return roomMaterialPacks[kindOrEnabled] || null
+  }
+  if (typeof kindOrEnabled === 'number') {
+    return objectMaterials[kindOrEnabled] || null
+  }
+  return null
 }
 
 function bindMaterialMaps (kindOrEnabled) {
   if (!shaderProgram || !shaderProgram.useMaterialMapsUniform) return
   ensureMaterialFallbacks()
 
-  var kind = null
-  if (kindOrEnabled === true) kind = 'wood'
-  else if (kindOrEnabled && typeof kindOrEnabled === 'string') kind = kindOrEnabled
-
-  var pack = kind ? materialPacks[kind] : null
+  var pack = resolveMaterialPack(kindOrEnabled)
   var useMaps = !!(pack && materialTexReady(pack.normal) && materialTexReady(pack.roughness))
 
   gl.activeTexture(gl.TEXTURE2)
@@ -103,26 +89,51 @@ function loadMaterialTexture (path, assign) {
   tex.image = new Image()
   tex.image.onload = function () {
     handleLoadedTexture(tex)
-    // 仅在真实贴图上传成功后启用；失败/占位不 assign，保持 pack 为 null
     if (materialTexReady(tex)) assign(tex)
   }
-  tex.image.onerror = function () {
-    // 不写入 pack，避免黑占位法线把材质通路打开
-  }
+  tex.image.onerror = function () {}
   tex.image.src = path
 }
 
 function initMaterialTextures () {
   ensureMaterialFallbacks()
-  var names = ['wood', 'fabric', 'metal', 'plastic', 'ceramic', 'paper', 'plaster', 'ceiling']
-  for (var i = 0; i < names.length; i++) {
-    (function (name) {
-      loadMaterialTexture('img/material/' + name + '_normal.jpg', function (tex) {
-        materialPacks[name].normal = tex
+
+  // 房间材质（共享）
+  loadMaterialTexture('img/material/wood_normal.jpg', function (tex) {
+    roomMaterialPacks.wood.normal = tex
+  })
+  loadMaterialTexture('img/material/wood_roughness.jpg', function (tex) {
+    roomMaterialPacks.wood.roughness = tex
+  })
+  loadMaterialTexture('img/material/plaster_normal.jpg', function (tex) {
+    roomMaterialPacks.plaster.normal = tex
+  })
+  loadMaterialTexture('img/material/plaster_roughness.jpg', function (tex) {
+    roomMaterialPacks.plaster.roughness = tex
+  })
+  loadMaterialTexture('img/material/ceiling_normal.jpg', function (tex) {
+    roomMaterialPacks.ceiling.normal = tex
+  })
+  loadMaterialTexture('img/material/ceiling_roughness.jpg', function (tex) {
+    roomMaterialPacks.ceiling.roughness = tex
+  })
+
+  if (typeof OBJECTS_CATALOG === 'undefined') return
+  for (var i = 0; i < OBJECTS_CATALOG.length; i++) {
+    (function (entry) {
+      objectMaterials[entry.id] = {
+        normal: null,
+        roughness: null,
+        specular: entry.specular,
+        shininess: entry.shininess,
+        kind: entry.kind
+      }
+      loadMaterialTexture(entry.normal, function (tex) {
+        objectMaterials[entry.id].normal = tex
       })
-      loadMaterialTexture('img/material/' + name + '_roughness.jpg', function (tex) {
-        materialPacks[name].roughness = tex
+      loadMaterialTexture(entry.roughness, function (tex) {
+        objectMaterials[entry.id].roughness = tex
       })
-    })(names[i])
+    })(OBJECTS_CATALOG[i])
   }
 }

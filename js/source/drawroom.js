@@ -11,14 +11,9 @@ function drawroom () {
 }
 
 function bindRoomAttributes (positionBuffer, texBuffer, normalBuffer) {
-  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer.data)
-  gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, positionBuffer.itemSize, gl.FLOAT, false, 0, 0)
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer.data)
-  gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute, normalBuffer.itemSize, gl.FLOAT, false, 0, 0)
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, texBuffer.data)
-  gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, texBuffer.itemSize, gl.FLOAT, false, 0, 0)
+  bindAttribBuffer(gl, shaderProgram.vertexPositionAttribute, positionBuffer)
+  bindAttribBuffer(gl, shaderProgram.vertexNormalAttribute, normalBuffer)
+  bindAttribBuffer(gl, shaderProgram.textureCoordAttribute, texBuffer)
 }
 
 function builddoor (j) {

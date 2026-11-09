@@ -421,8 +421,10 @@
             }
 
             void main(void) {
-                float keep = vTextureCoord.x * 0.0 + vTransformedNormal.x * 0.0;
-                gl_FragColor = packDepth(clamp(vLinearDepth + keep, 0.0, 1.0));
+                // 用极小系数写入，避免被编译器常量折叠掉而优化掉 attribute
+                vec4 packed = packDepth(clamp(vLinearDepth, 0.0, 1.0));
+                packed.r += (vTextureCoord.x + vTransformedNormal.x) * 1.0e-20;
+                gl_FragColor = packed;
             }
         </script>
 

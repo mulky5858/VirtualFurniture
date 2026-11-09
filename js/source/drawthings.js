@@ -10,14 +10,9 @@ function drawThings (num, i) {
     gl.bindTexture(gl.TEXTURE_2D, ThingsTexture[num][translateTexture[num][i]])
   }
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, ThingsVertexPositionBuffer[num].data)
-  gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, ThingsVertexPositionBuffer[num].itemSize, gl.FLOAT, false, 0, 0)
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, ThingsVertexNormalBuffer[num].data)
-  gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute, ThingsVertexNormalBuffer[num].itemSize, gl.FLOAT, false, 0, 0)
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, ThingsVertexTextureCoordBuffer[num].data)
-  gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, ThingsVertexTextureCoordBuffer[num].itemSize, gl.FLOAT, false, 0, 0)
+  bindAttribBuffer(gl, shaderProgram.vertexPositionAttribute, ThingsVertexPositionBuffer[num])
+  bindAttribBuffer(gl, shaderProgram.vertexNormalAttribute, ThingsVertexNormalBuffer[num])
+  bindAttribBuffer(gl, shaderProgram.textureCoordAttribute, ThingsVertexTextureCoordBuffer[num])
 
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ThingsVertexIndexBuffer[num].data)
   setMatrixUniforms()
@@ -62,11 +57,8 @@ function drawTV (i, channel) {
   mat4.rotateY(mvMatrix, degToRad(rotateAngle[2][i]))
   mat4.scale(mvMatrix, translateScale[2][i])
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, TVScreenVertexPositionBuffer[channel])
-  gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, TVScreenVertexPositionBuffer[channel].itemSize, gl.FLOAT, false, 0, 0)
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, TVScreenVertexTextureCoordBuffer[channel])
-  gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, TVScreenVertexTextureCoordBuffer[channel].itemSize, gl.FLOAT, false, 0, 0)
+  bindAttribBuffer(gl, shaderProgram.vertexPositionAttribute, TVScreenVertexPositionBuffer[channel])
+  bindAttribBuffer(gl, shaderProgram.textureCoordAttribute, TVScreenVertexTextureCoordBuffer[channel])
 
   gl.activeTexture(gl.TEXTURE0)
   gl.bindTexture(gl.TEXTURE_2D, rttTexture[channel])
@@ -95,14 +87,9 @@ function drawThings2 (num) {
     gl2.bindTexture(gl2.TEXTURE_2D, ThingsTexture2[num][gl2_translateTexture])
   }
 
-  gl2.bindBuffer(gl2.ARRAY_BUFFER, ThingsVertexPositionBuffer2[num].data)
-  gl2.vertexAttribPointer(shaderProgram2.vertexPositionAttribute, ThingsVertexPositionBuffer2[num].itemSize, gl2.FLOAT, false, 0, 0)
-
-  gl2.bindBuffer(gl2.ARRAY_BUFFER, ThingsVertexNormalBuffer2[num].data)
-  gl2.vertexAttribPointer(shaderProgram2.vertexNormalAttribute, ThingsVertexNormalBuffer2[num].itemSize, gl2.FLOAT, false, 0, 0)
-
-  gl2.bindBuffer(gl2.ARRAY_BUFFER, ThingsVertexTextureCoordBuffer2[num].data)
-  gl2.vertexAttribPointer(shaderProgram2.textureCoordAttribute, ThingsVertexTextureCoordBuffer2[num].itemSize, gl2.FLOAT, false, 0, 0)
+  bindAttribBuffer(gl2, shaderProgram2.vertexPositionAttribute, ThingsVertexPositionBuffer2[num])
+  bindAttribBuffer(gl2, shaderProgram2.vertexNormalAttribute, ThingsVertexNormalBuffer2[num])
+  bindAttribBuffer(gl2, shaderProgram2.textureCoordAttribute, ThingsVertexTextureCoordBuffer2[num])
 
   gl2.bindBuffer(gl2.ELEMENT_ARRAY_BUFFER, ThingsVertexIndexBuffer2[num].data)
   setMatrixUniforms2()

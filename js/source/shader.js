@@ -74,9 +74,19 @@ function enableAttrib (ngl, location) {
   }
 }
 
+// WebGL2 可能优化掉未使用 attribute，location 为 -1 时不可调用 vertexAttribPointer
+function bindAttribBuffer (ngl, location, buffer) {
+  if (location < 0 || !buffer) return
+  ngl.bindBuffer(ngl.ARRAY_BUFFER, buffer.data || buffer)
+  ngl.vertexAttribPointer(location, buffer.itemSize, ngl.FLOAT, false, 0, 0)
+}
+
 function createProgram (ngl, fragmentShaderID, vertexShaderID) {
   var fragmentShader = getShader(ngl, fragmentShaderID)
   var vertexShader = getShader(ngl, vertexShaderID)
+  if (!fragmentShader || !vertexShader) {
+    return null
+  }
 
   var program = ngl.createProgram()
   ngl.attachShader(program, vertexShader)
@@ -88,6 +98,7 @@ function createProgram (ngl, fragmentShaderID, vertexShaderID) {
 
   if (!ngl.getProgramParameter(program, ngl.LINK_STATUS)) {
     alert('无法加载着色器。')
+    return null
   }
 
   program.vertexPositionAttribute = ngl.getAttribLocation(program, 'aVertexPosition')
@@ -154,9 +165,13 @@ function initShaders (ngl) {
   }
   // perVertexProgram = createProgram(ngl,"per-vertex-lighting-fs", "per-vertex-lighting-vs")
   perFragmentProgram = createProgram(ngl, 'per-fragment-lighting-fs', 'per-fragment-lighting-vs')
-  attachShadowUniforms(ngl, perFragmentProgram)
+  if (perFragmentProgram) {
+    attachShadowUniforms(ngl, perFragmentProgram)
+  }
   shadowProgram = createProgram(ngl, 'shadow-depth-fs', 'shadow-depth-vs')
-  shadowProgram.shadowFarUniform = ngl.getUniformLocation(shadowProgram, 'uShadowFar')
+  if (shadowProgram) {
+    shadowProgram.shadowFarUniform = ngl.getUniformLocation(shadowProgram, 'uShadowFar')
+  }
 }
 function initShaders2 (ngl) {
   perVertexProgram2 = createProgram(ngl, 'per-vertex-lighting-fs', 'per-vertex-lighting-vs')

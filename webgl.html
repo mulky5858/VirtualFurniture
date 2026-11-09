@@ -274,6 +274,10 @@
                 return (fragDepth - bias > closest) ? 0.0 : 1.0;
             }
 
+            float shadowRand(vec3 seed) {
+                return fract(sin(dot(seed, vec3(12.9898, 78.233, 45.164))) * 43758.5453);
+            }
+
             float calcShadow(vec4 eyePos, float nDotL) {
                 if (!uUseShadow) return 1.0;
                 vec3 worldPos = (uInvCameraView * eyePos).xyz;
@@ -282,9 +286,9 @@
                 if (current < 0.001) return 1.0;
                 float linDepth = clamp(current / uShadowFar, 0.0, 1.0);
                 vec3 dir = normalize(L);
-                // 轻度斜率 bias：压痤疮，但避免茶壶等小物体影子与本体脱开
                 float slope = tan(acos(clamp(nDotL, 0.0, 1.0)));
                 float bias = clamp(uShadowBias * (1.0 + slope * 0.75), uShadowBias, uShadowBias * 2.2);
+
                 vec3 absL = abs(L);
                 vec3 offsetA;
                 vec3 offsetB;
@@ -298,14 +302,61 @@
                     offsetA = vec3(1.0, 0.0, 0.0);
                     offsetB = vec3(0.0, 1.0, 0.0);
                 }
-                float disk = uShadowTexelSize * 0.85;
-                float s = shadowSampleCube(dir, linDepth, bias);
-                s += shadowSampleCube(normalize(dir + ( offsetA + offsetB) * disk), linDepth, bias);
-                s += shadowSampleCube(normalize(dir + ( offsetA - offsetB) * disk), linDepth, bias);
-                s += shadowSampleCube(normalize(dir + (-offsetA + offsetB) * disk), linDepth, bias);
-                s += shadowSampleCube(normalize(dir + (-offsetA - offsetB) * disk), linDepth, bias);
-                s *= 0.2;
-                return mix(0.08, 1.0, s);
+
+                // Poisson 盘 + 距离变软 + 逐像素旋转，减轻硬边锯齿
+                vec2 poisson[16];
+                poisson[0] = vec2(-0.94201624, -0.39906216);
+                poisson[1] = vec2(0.94558609, -0.76890725);
+                poisson[2] = vec2(-0.094184101, -0.92938870);
+                poisson[3] = vec2(0.34495938, 0.29387760);
+                poisson[4] = vec2(-0.91588581, 0.45771432);
+                poisson[5] = vec2(-0.81544232, -0.87912464);
+                poisson[6] = vec2(-0.38277543, 0.27676845);
+                poisson[7] = vec2(0.97484398, 0.75648379);
+                poisson[8] = vec2(0.44323325, -0.97511554);
+                poisson[9] = vec2(0.53742981, -0.47373420);
+                poisson[10] = vec2(-0.26496911, -0.41893023);
+                poisson[11] = vec2(0.79197514, 0.19090188);
+                poisson[12] = vec2(-0.24188840, 0.99706507);
+                poisson[13] = vec2(-0.81409955, 0.91437590);
+                poisson[14] = vec2(0.19984126, 0.78641367);
+                poisson[15] = vec2(0.14383161, -0.14100790);
+
+                float ang = shadowRand(worldPos) * 6.2831853;
+                float ca = cos(ang);
+                float sa = sin(ang);
+
+                // 先估 blocker，拉开近硬远软的半影
+                float searchRadius = uShadowTexelSize * mix(2.5, 6.0, linDepth);
+                float blockerSum = 0.0;
+                float blockerCount = 0.0;
+                for (int i = 0; i < 8; i++) {
+                    vec2 p = poisson[i];
+                    vec2 r = vec2(ca * p.x - sa * p.y, sa * p.x + ca * p.y);
+                    vec3 sampleDir = normalize(dir + (offsetA * r.x + offsetB * r.y) * searchRadius);
+                    float closest = unpackDepth(textureCube(uShadowMap, sampleDir));
+                    if (closest < linDepth - bias) {
+                        blockerSum += closest;
+                        blockerCount += 1.0;
+                    }
+                }
+
+                float filterRadius = uShadowTexelSize * mix(2.0, 5.0, linDepth);
+                if (blockerCount > 0.5) {
+                    float avgBlocker = blockerSum / blockerCount;
+                    float penumbra = clamp((linDepth - avgBlocker) / max(avgBlocker, 0.0001), 0.0, 1.0);
+                    filterRadius = uShadowTexelSize * mix(2.0, 9.0, penumbra);
+                }
+
+                float s = 0.0;
+                for (int j = 0; j < 16; j++) {
+                    vec2 p2 = poisson[j];
+                    vec2 r2 = vec2(ca * p2.x - sa * p2.y, sa * p2.x + ca * p2.y);
+                    vec3 sampleDir2 = normalize(dir + (offsetA * r2.x + offsetB * r2.y) * filterRadius);
+                    s += shadowSampleCube(sampleDir2, linDepth, bias);
+                }
+                s *= 0.0625;
+                return mix(0.1, 1.0, s);
             }
 
             // 无切线属性时用屏幕空间导数重建 TBN（Mikkelsen/TenthPlanet 形式，对镜像 UV 更稳）

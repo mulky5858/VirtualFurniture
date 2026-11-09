@@ -138,11 +138,11 @@
         <script type="text/javascript" src="js/Library/jquery.contextmenu.r2.js"></script>
     
         <script type="text/javascript" src="js/source/InputAndOutputStreams.js"></script>
-        <script type="text/javascript" src="js/source/shader.js?v=p18"></script>
+        <script type="text/javascript" src="js/source/shader.js?v=p19"></script>
         <script type="text/javascript" src="js/source/Matrix.js"></script>
         <script type="text/javascript" src="js/source/objectsCatalog.js"></script>
         <script type="text/javascript" src="js/source/texture.js"></script>
-        <script type="text/javascript" src="js/source/material.js?v=p18"></script> 
+        <script type="text/javascript" src="js/source/material.js?v=p19"></script> 
         <script type="text/javascript" src="js/source/Loadroom.js"></script>
         <script type="text/javascript" src="js/source/Loadthings.js"></script>
         <script type="text/javascript" src="js/source/cancel.js"></script>
@@ -159,7 +159,7 @@
         <script type="text/javascript" src="js/source/bloom.js"></script>
         <script type="text/javascript" src="js/source/debugPanel.js?v=p18"></script>
         <script type="text/javascript" src="js/source/lights.js"></script>
-        <script type="text/javascript" src="js/source/draw.js?v=p18"></script>
+        <script type="text/javascript" src="js/source/draw.js?v=p19"></script>
         <script type="text/javascript" src="js/source/drawthings.js"></script>
         <script type="text/javascript" src="js/source/collisionDetection.js"></script>
         <script type="text/javascript" src="js/source/picking.js"></script>
@@ -384,14 +384,19 @@
                     return N;
                 }
                 vec3 mapN = texture2D(uNormalMap, uv).xyz * 2.0 - 1.0;
-                mapN.xy *= 0.75;
+                // 掠射角（远处地板）高光会把凹凸放大；正对（近处）偏弱。按 N·V 补偿。
+                vec3 V = normalize(-vPosition.xyz);
+                float facing = abs(dot(normalize(N), V));
+                float bumpScale = mix(0.35, 1.45, facing * facing);
+                mapN.xy *= bumpScale;
+                mapN = normalize(mapN);
                 vec3 n = normalize(cotangentFrame(N, vPosition.xyz, uvDerivBase) * mapN);
                 // 与几何法线反向时回退，防止衣柜等模型上半部变黑
                 float align = dot(n, N);
                 if (align < 0.15) {
                     return N;
                 }
-                return normalize(mix(N, n, 0.85));
+                return normalize(mix(N, n, 0.92));
             }
 
             void main(void) {

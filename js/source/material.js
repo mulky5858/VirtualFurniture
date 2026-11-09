@@ -13,7 +13,7 @@ var ceilingNormalTexture = []
 
 var materialFallbackNormal = null
 var materialFallbackRoughness = null
-var materialTexVer = '17'
+var materialTexVer = '19'
 
 function materialTexReady (tex) {
   return !!(tex && tex.webglUploaded && tex.image && tex.image.width > 1 && tex.image.height > 1)

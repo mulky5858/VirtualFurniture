@@ -1,5 +1,29 @@
 // DEBUG 面板：后处理开关（仅测试模式显示）
 var debugPanelExpanded = 1
+var debugFpsLastTime = 0
+var debugFpsFrames = 0
+var debugFpsValue = 0
+var debugFpsEl = null
+
+function updateDebugFps () {
+  if (typeof testmode === 'undefined' || !testmode) return
+  var now = (typeof performance !== 'undefined' && performance.now)
+    ? performance.now()
+    : new Date().getTime()
+  if (!debugFpsLastTime) {
+    debugFpsLastTime = now
+    debugFpsFrames = 0
+    return
+  }
+  debugFpsFrames++
+  var elapsed = now - debugFpsLastTime
+  if (elapsed < 500) return
+  debugFpsValue = Math.round((debugFpsFrames * 1000) / elapsed)
+  debugFpsLastTime = now
+  debugFpsFrames = 0
+  if (!debugFpsEl) debugFpsEl = document.getElementById('debugFps')
+  if (debugFpsEl) debugFpsEl.textContent = debugFpsValue + ' FPS'
+}
 
 function setPostAAEnabled (enabled) {
   var on = enabled ? 1 : 0
@@ -31,6 +55,10 @@ function updateDebugPanelVisibility () {
   var show = typeof testmode !== 'undefined' && !!testmode
   root.style.display = show ? 'block' : 'none'
   if (show) {
+    debugFpsLastTime = 0
+    debugFpsFrames = 0
+    debugFpsEl = document.getElementById('debugFps')
+    if (debugFpsEl) debugFpsEl.textContent = '-- FPS'
     syncDebugPanelFromFlags()
     var panel = document.getElementById('debugPanel')
     var btn = document.getElementById('debugPanelToggle')

@@ -138,11 +138,11 @@
         <script type="text/javascript" src="js/Library/jquery.contextmenu.r2.js"></script>
     
         <script type="text/javascript" src="js/source/InputAndOutputStreams.js"></script>
-        <script type="text/javascript" src="js/source/shader.js"></script>
+        <script type="text/javascript" src="js/source/shader.js?v=p18"></script>
         <script type="text/javascript" src="js/source/Matrix.js"></script>
         <script type="text/javascript" src="js/source/objectsCatalog.js"></script>
         <script type="text/javascript" src="js/source/texture.js"></script>
-        <script type="text/javascript" src="js/source/material.js"></script> 
+        <script type="text/javascript" src="js/source/material.js?v=p18"></script> 
         <script type="text/javascript" src="js/source/Loadroom.js"></script>
         <script type="text/javascript" src="js/source/Loadthings.js"></script>
         <script type="text/javascript" src="js/source/cancel.js"></script>
@@ -151,15 +151,15 @@
         <script type="text/javascript" src="js/source/gizmo.js"></script>
         <script type="text/javascript" src="js/source/testmode.js"></script>
         <script type="text/javascript" src="js/source/drawSceneOnTVScreen.js"></script>
-        <script type="text/javascript" src="js/source/drawroom.js"></script>
+        <script type="text/javascript" src="js/source/drawroom.js?v=p12"></script>
         <script type="text/javascript" src="js/source/shadow.js"></script>
         <script type="text/javascript" src="js/source/postprocess.js"></script>
         <script type="text/javascript" src="js/source/ao.js"></script>
         <script type="text/javascript" src="js/source/contactShadow.js"></script>
         <script type="text/javascript" src="js/source/bloom.js"></script>
-        <script type="text/javascript" src="js/source/debugPanel.js"></script>
+        <script type="text/javascript" src="js/source/debugPanel.js?v=p18"></script>
         <script type="text/javascript" src="js/source/lights.js"></script>
-        <script type="text/javascript" src="js/source/draw.js"></script>
+        <script type="text/javascript" src="js/source/draw.js?v=p18"></script>
         <script type="text/javascript" src="js/source/drawthings.js"></script>
         <script type="text/javascript" src="js/source/collisionDetection.js"></script>
         <script type="text/javascript" src="js/source/picking.js"></script>
@@ -376,16 +376,16 @@
                 return mat3(T * invmax, B * invmax, N);
             }
 
-            vec3 applyNormalMap(vec3 N, vec2 uv) {
-                vec2 duvdx = dFdx(uv);
-                vec2 duvdy = dFdy(uv);
+            vec3 applyNormalMap(vec3 N, vec2 uv, vec2 uvDerivBase) {
+                vec2 duvdx = dFdx(uvDerivBase);
+                vec2 duvdy = dFdy(uvDerivBase);
                 // UV 导数退化（玻璃面/缝线等）时不做扰动，避免整片死黑
                 if (dot(duvdx, duvdx) + dot(duvdy, duvdy) < 1.0e-10) {
                     return N;
                 }
                 vec3 mapN = texture2D(uNormalMap, uv).xyz * 2.0 - 1.0;
                 mapN.xy *= 0.75;
-                vec3 n = normalize(cotangentFrame(N, vPosition.xyz, uv) * mapN);
+                vec3 n = normalize(cotangentFrame(N, vPosition.xyz, uvDerivBase) * mapN);
                 // 与几何法线反向时回退，防止衣柜等模型上半部变黑
                 float align = dot(n, N);
                 if (align < 0.15) {
@@ -393,8 +393,11 @@
                 }
                 return normalize(mix(N, n, 0.85));
             }
-        
+
             void main(void) {
+                vec3 geoN = normalize(vTransformedNormal);
+                vec3 viewDir = normalize(-vPosition.xyz);
+
                 vec4 fragmentColor;
                 if (uUseTextures) {
                     fragmentColor = texture2D(uSampler, vTextureCoord);
@@ -406,12 +409,12 @@
                 if (!uUseLighting) {
                     lightWeighting = vec3(1.0, 1.0, 1.0);
                 } else {
-                    vec3 nrm = normalize(vTransformedNormal);
+                    vec3 nrm = geoN;
                     float roughness = 0.55;
                     float specStrength = uSpecularStrength * 0.45;
                     float shininess = uShininess * 0.5;
                     if (uUseMaterialMaps) {
-                        nrm = applyNormalMap(nrm, vTextureCoord);
+                        nrm = applyNormalMap(nrm, vTextureCoord, vTextureCoord);
                         roughness = texture2D(uRoughnessMap, vTextureCoord).r;
                         // 粗糙度越高高光越弱、越散
                         specStrength = uSpecularStrength * mix(1.15, 0.25, roughness);
@@ -421,7 +424,6 @@
                     }
 
                     lightWeighting = uAmbientColor;
-                    vec3 viewDir = normalize(-vPosition.xyz);
                     for (int i = 0; i < 8; i++) {
                         if (i < uLightCount) {
                             vec3 toLight = uPointLightingLocations[i] - vPosition.xyz;
@@ -1127,6 +1129,7 @@
         </div>
 
         <div id="debugPanelRoot">
+            <div id="debugFps">-- FPS</div>
             <button id="debugPanelToggle" type="button" onclick="toggleDebugPanel()">DEBUG ▾</button>
             <div id="debugPanel">
                 <div class="debugPanelTitle">后处理</div>

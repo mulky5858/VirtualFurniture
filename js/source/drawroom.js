@@ -28,7 +28,7 @@ function builddoor (j) {
   )
 }
 function rebuilddoor () {
-  if (typeof bindMaterialMaps === 'function') bindMaterialMaps('wood')
+  if (typeof bindMaterialMaps === 'function') bindMaterialMaps('door')
   for (var j = 0; j <= 50; j++) {
     if (DoorPresentAngle[j] > 1) {
       mvPushMatrix()
@@ -62,7 +62,7 @@ function buildfloor (x, z) {
 }
 
 function rebuildfloor () {
-  if (typeof bindMaterialMaps === 'function') bindMaterialMaps('wood')
+  if (typeof bindMaterialMaps === 'function') bindMaterialMaps('floor')
   for (var i = 0; i <= 19; i++)
     for (var j = 0; j <= 19; j++) {
       if (mapdiv[i][j]) {
@@ -186,7 +186,7 @@ function buildwall (x, z) {
 }
 
 function rebuildwall () {
-  if (typeof bindMaterialMaps === 'function') bindMaterialMaps('plaster')
+  if (typeof bindMaterialMaps === 'function') bindMaterialMaps('wall')
   for (var i = 0; i <= 19; i++)
     for (var j = 0; j <= 19; j++) {
       if (!mapdiv[i][j] && (shouldbuildwall(i, j))) {

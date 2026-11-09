@@ -61,6 +61,13 @@ function drawScene () {
     gl.uniform1i(shaderProgram.useTexturesUniform, 1)
     gl.uniform3f(shaderProgram.ambientColorUniform, 0.17, 0.17, 0.17)
     if (typeof bindMaterialMaps === 'function') bindMaterialMaps(null)
+  } else {
+    // 后处理未启用时确保画回默认帧缓冲，避免仍绑着已销毁的 FBO
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+    gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight)
+    gl.clearColor(0, 0, 0, 1)
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
+    gl.useProgram(shaderProgram)
   }
 
   bindSceneLightsEyeSpace(mvMatrix)
@@ -209,6 +216,7 @@ function tick () {
       handleKeys()
       drawScene()
       animate()
+      if (typeof updateDebugFps === 'function') updateDebugFps()
     }
   }
 }

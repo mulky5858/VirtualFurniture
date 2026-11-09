@@ -49,9 +49,11 @@ function drawScene () {
     if (typeof bindMaterialMaps === 'function') bindMaterialMaps(null)
   }
 
-  // 主场景改渲到 AO FBO（失败则直接画到屏幕）
-  var aoPass = (typeof beginAOScenePass === 'function') && beginAOScenePass()
-  if (aoPass) {
+  // 主场景改渲到离屏 FBO（AO / 接触阴影）；失败则直接画到屏幕
+  var postPass = (typeof beginPostScenePass === 'function')
+    ? beginPostScenePass(cameraView)
+    : ((typeof beginAOScenePass === 'function') && beginAOScenePass(cameraView))
+  if (postPass) {
     gl.clearColor(0, 0, 0, 1)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
     gl.useProgram(shaderProgram)
@@ -89,8 +91,9 @@ function drawScene () {
   // 测试模式：红色球体标出点光源位置
   drawLightMarker()
 
-  if (aoPass && typeof applyAOAndPresent === 'function') {
-    applyAOAndPresent()
+  if (postPass) {
+    if (typeof applyPostAndPresent === 'function') applyPostAndPresent()
+    else if (typeof applyAOAndPresent === 'function') applyAOAndPresent()
   }
 
   gl2.useProgram(shaderProgram2)

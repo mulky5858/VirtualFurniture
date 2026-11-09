@@ -84,7 +84,8 @@ function refreshwebsite () {
     gl.viewportWidth = viewW
     gl.viewportHeight = viewH
     gl.viewport(0, 0, viewW, viewH)
-    if (typeof resizeAOBuffers === 'function') resizeAOBuffers()
+    if (typeof resizePostBuffers === 'function') resizePostBuffers()
+    else if (typeof resizeAOBuffers === 'function') resizeAOBuffers()
   }
 
   setBox('viewload', viewLeft, viewTop, viewW, viewH)

@@ -1,8 +1,8 @@
 // SSAO：屏幕空间环境光遮蔽
 var useAO = 1
-var aoStrength = 0.55
-var aoRadius = 0.32
-var aoBias = 0.025
+var aoStrength = 0.48
+var aoRadius = 0.28
+var aoBias = 0.03
 var aoKernelSize = 16
 var aoFullRes = 1
 

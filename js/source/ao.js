@@ -1,16 +1,25 @@
 var useAO = 1
+var useFXAA = 1
+var useMSAA = 1
 var aoReady = false
 var aoSupported = false
-var aoStrength = 0.72
-var aoRadius = 0.55
-var aoBias = 0.035
+var aoStrength = 0.55
+var aoRadius = 0.32
+var aoBias = 0.025
 var aoNear = 0.1
 var aoFar = 100.0
 var aoKernelSize = 16
+var aoFullRes = 1
 
 var aoSceneFBO = null
 var aoSceneColor = null
 var aoSceneDepth = null
+var aoMsFBO = null
+var aoMsColorRB = null
+var aoMsDepthRB = null
+var aoMsSamples = 0
+var aoPresentFBO = null
+var aoPresentColor = null
 var aoFBO = null
 var aoTexture = null
 var aoBlurFBO = null
@@ -27,6 +36,7 @@ var aoHalfH = 0
 var aoProgram = null
 var aoBlurProgram = null
 var aoCompositeProgram = null
+var aoFxaaProgram = null
 
 var AO_VS = [
   'attribute vec3 aVertexPosition;',
@@ -88,25 +98,34 @@ var AO_FS = [
   '    occlusion += (sampleDepth >= samplePos.z + uBias ? 1.0 : 0.0) * rangeCheck;',
   '  }',
   '  occlusion = 1.0 - (occlusion / 16.0);',
-  '  occlusion = pow(clamp(occlusion, 0.0, 1.0), 1.35);',
+  '  occlusion = pow(clamp(occlusion, 0.0, 1.0), 1.15);',
   '  gl_FragColor = vec4(occlusion, occlusion, occlusion, 1.0);',
   '}'
 ].join('\n')
 
+// 深度感知模糊：只抹采样噪声，不抹掉接触边缘
 var AO_BLUR_FS = [
   'precision mediump float;',
   'varying vec2 vTextureCoord;',
   'uniform sampler2D uAO;',
+  'uniform sampler2D uDepth;',
   'uniform vec2 uTexel;',
   'void main(void) {',
+  '  float centerAO = texture2D(uAO, vTextureCoord).r;',
+  '  float centerD = texture2D(uDepth, vTextureCoord).r;',
   '  float result = 0.0;',
+  '  float wSum = 0.0;',
   '  for (int x = -1; x <= 1; x++) {',
   '    for (int y = -1; y <= 1; y++) {',
-  '      result += texture2D(uAO, vTextureCoord + vec2(float(x), float(y)) * uTexel).r;',
+  '      vec2 uv = vTextureCoord + vec2(float(x), float(y)) * uTexel;',
+  '      float d = texture2D(uDepth, uv).r;',
+  '      float w = 1.0 - smoothstep(0.0, 0.0015, abs(d - centerD));',
+  '      result += texture2D(uAO, uv).r * w;',
+  '      wSum += w;',
   '    }',
   '  }',
-  '  result /= 9.0;',
-  '  gl_FragColor = vec4(result, result, result, 1.0);',
+  '  float ao = (wSum > 0.001) ? (result / wSum) : centerAO;',
+  '  gl_FragColor = vec4(ao, ao, ao, 1.0);',
   '}'
 ].join('\n')
 
@@ -119,9 +138,50 @@ var AO_COMPOSITE_FS = [
   'void main(void) {',
   '  vec4 color = texture2D(uScene, vTextureCoord);',
   '  float ao = texture2D(uAO, vTextureCoord).r;',
-  '  float shade = mix(1.0, ao, uStrength);',
-  '  color.rgb *= mix(shade, 1.0, 0.12);',
+  '  // 略提亮中间调，保留缝隙处的暗部',
+  '  ao = mix(1.0, ao, uStrength);',
+  '  ao = mix(ao, 1.0, 0.08);',
+  '  color.rgb *= ao;',
   '  gl_FragColor = color;',
+  '}'
+].join('\n')
+
+// 轻量 FXAA（适合家具轮廓）
+var AO_FXAA_FS = [
+  'precision mediump float;',
+  'varying vec2 vTextureCoord;',
+  'uniform sampler2D uScene;',
+  'uniform vec2 uResolution;',
+  'void main(void) {',
+  '  vec2 inv = 1.0 / uResolution;',
+  '  vec3 rgbM = texture2D(uScene, vTextureCoord).rgb;',
+  '  vec3 rgbNW = texture2D(uScene, vTextureCoord + vec2(-1.0, -1.0) * inv).rgb;',
+  '  vec3 rgbNE = texture2D(uScene, vTextureCoord + vec2( 1.0, -1.0) * inv).rgb;',
+  '  vec3 rgbSW = texture2D(uScene, vTextureCoord + vec2(-1.0,  1.0) * inv).rgb;',
+  '  vec3 rgbSE = texture2D(uScene, vTextureCoord + vec2( 1.0,  1.0) * inv).rgb;',
+  '  vec3 luma = vec3(0.299, 0.587, 0.114);',
+  '  float lumaM = dot(rgbM, luma);',
+  '  float lumaNW = dot(rgbNW, luma);',
+  '  float lumaNE = dot(rgbNE, luma);',
+  '  float lumaSW = dot(rgbSW, luma);',
+  '  float lumaSE = dot(rgbSE, luma);',
+  '  float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));',
+  '  float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));',
+  '  vec2 dir;',
+  '  dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));',
+  '  dir.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));',
+  '  float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * 0.03125, 0.0078125);',
+  '  float rcpDirMin = 1.0 / (min(abs(dir.x), abs(dir.y)) + dirReduce);',
+  '  dir = clamp(dir * rcpDirMin, vec2(-8.0), vec2(8.0)) * inv;',
+  '  vec3 rgbA = 0.5 * (',
+  '    texture2D(uScene, vTextureCoord + dir * (1.0 / 3.0 - 0.5)).rgb +',
+  '    texture2D(uScene, vTextureCoord + dir * (2.0 / 3.0 - 0.5)).rgb);',
+  '  vec3 rgbB = rgbA * 0.5 + 0.25 * (',
+  '    texture2D(uScene, vTextureCoord + dir * -0.5).rgb +',
+  '    texture2D(uScene, vTextureCoord + dir * 0.5).rgb);',
+  '  float lumaB = dot(rgbB, luma);',
+  '  if (lumaB < lumaMin || lumaB > lumaMax) gl_FragColor = vec4(rgbA, 1.0);',
+  '  else gl_FragColor = vec4(rgbB, 1.0);',
   '}'
 ].join('\n')
 
@@ -163,12 +223,13 @@ function createAOProgramFromSource (vsSource, fsSource) {
   return program
 }
 
-function createAOColorTarget (width, height) {
+function createAOColorTarget (width, height, nearest) {
   var tex = gl.createTexture()
   gl.bindTexture(gl.TEXTURE_2D, tex)
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+  var filter = nearest ? gl.NEAREST : gl.LINEAR
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter)
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
   gl.bindTexture(gl.TEXTURE_2D, null)
@@ -200,6 +261,65 @@ function destroyAOTexture (tex) {
 
 function destroyAOFBO (fbo) {
   if (fbo) gl.deleteFramebuffer(fbo)
+}
+
+function destroyAORB (rb) {
+  if (rb) gl.deleteRenderbuffer(rb)
+}
+
+function destroyAOMultisampleTargets () {
+  destroyAORB(aoMsColorRB)
+  destroyAORB(aoMsDepthRB)
+  destroyAOFBO(aoMsFBO)
+  aoMsColorRB = null
+  aoMsDepthRB = null
+  aoMsFBO = null
+  aoMsSamples = 0
+}
+
+function createAOMultisampleTargets (width, height) {
+  destroyAOMultisampleTargets()
+  if (!useMSAA || !isWebGL2Context(gl)) return false
+
+  var maxSamples = gl.getParameter(gl.MAX_SAMPLES) || 0
+  var samples = Math.min(4, maxSamples)
+  if (samples < 2) return false
+
+  aoMsColorRB = gl.createRenderbuffer()
+  gl.bindRenderbuffer(gl.RENDERBUFFER, aoMsColorRB)
+  gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, gl.RGBA8, width, height)
+
+  aoMsDepthRB = gl.createRenderbuffer()
+  gl.bindRenderbuffer(gl.RENDERBUFFER, aoMsDepthRB)
+  gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, gl.DEPTH_COMPONENT24, width, height)
+
+  aoMsFBO = gl.createFramebuffer()
+  gl.bindFramebuffer(gl.FRAMEBUFFER, aoMsFBO)
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, aoMsColorRB)
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, aoMsDepthRB)
+
+  var ok = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+  gl.bindRenderbuffer(gl.RENDERBUFFER, null)
+  if (!ok) {
+    destroyAOMultisampleTargets()
+    return false
+  }
+  aoMsSamples = samples
+  return true
+}
+
+function resolveAOMultisample () {
+  if (!aoMsFBO || !aoSceneFBO) return
+  gl.bindFramebuffer(gl.READ_FRAMEBUFFER, aoMsFBO)
+  gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, aoSceneFBO)
+  gl.blitFramebuffer(
+    0, 0, aoWidth, aoHeight,
+    0, 0, aoWidth, aoHeight,
+    gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT,
+    gl.NEAREST
+  )
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null)
 }
 
 function initAOKernelAndNoise () {
@@ -269,18 +389,27 @@ function resizeAOBuffers () {
 
   aoWidth = w
   aoHeight = h
-  aoHalfW = Math.max(1, w >> 1)
-  aoHalfH = Math.max(1, h >> 1)
+  // 全分辨率更清晰；半分辨率仅作性能回退
+  if (aoFullRes) {
+    aoHalfW = aoWidth
+    aoHalfH = aoHeight
+  } else {
+    aoHalfW = Math.max(1, w >> 1)
+    aoHalfH = Math.max(1, h >> 1)
+  }
 
   destroyAOTexture(aoSceneColor)
   destroyAOTexture(aoSceneDepth)
+  destroyAOTexture(aoPresentColor)
   destroyAOTexture(aoTexture)
   destroyAOTexture(aoBlurTexture)
   destroyAOFBO(aoSceneFBO)
+  destroyAOFBO(aoPresentFBO)
   destroyAOFBO(aoFBO)
   destroyAOFBO(aoBlurFBO)
+  destroyAOMultisampleTargets()
 
-  aoSceneColor = createAOColorTarget(aoWidth, aoHeight)
+  aoSceneColor = createAOColorTarget(aoWidth, aoHeight, false)
   aoSceneDepth = createAODepthTexture(aoWidth, aoHeight)
   aoSceneFBO = gl.createFramebuffer()
   gl.bindFramebuffer(gl.FRAMEBUFFER, aoSceneFBO)
@@ -292,12 +421,20 @@ function resizeAOBuffers () {
     return
   }
 
-  aoTexture = createAOColorTarget(aoHalfW, aoHalfH)
+  createAOMultisampleTargets(aoWidth, aoHeight)
+
+  aoPresentColor = createAOColorTarget(aoWidth, aoHeight, false)
+  aoPresentFBO = gl.createFramebuffer()
+  gl.bindFramebuffer(gl.FRAMEBUFFER, aoPresentFBO)
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, aoPresentColor, 0)
+
+  // AO 贴图用 NEAREST，避免放大时被线性过滤抹糊
+  aoTexture = createAOColorTarget(aoHalfW, aoHalfH, true)
   aoFBO = gl.createFramebuffer()
   gl.bindFramebuffer(gl.FRAMEBUFFER, aoFBO)
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, aoTexture, 0)
 
-  aoBlurTexture = createAOColorTarget(aoHalfW, aoHalfH)
+  aoBlurTexture = createAOColorTarget(aoHalfW, aoHalfH, true)
   aoBlurFBO = gl.createFramebuffer()
   gl.bindFramebuffer(gl.FRAMEBUFFER, aoBlurFBO)
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, aoBlurTexture, 0)
@@ -321,6 +458,7 @@ function initAO () {
   aoProgram = createAOProgramFromSource(AO_VS, AO_FS)
   aoBlurProgram = createAOProgramFromSource(AO_VS, AO_BLUR_FS)
   aoCompositeProgram = createAOProgramFromSource(AO_VS, AO_COMPOSITE_FS)
+  aoFxaaProgram = createAOProgramFromSource(AO_VS, AO_FXAA_FS)
   if (!aoProgram || !aoBlurProgram || !aoCompositeProgram) return
 
   aoProgram.depthUniform = gl.getUniformLocation(aoProgram, 'uDepth')
@@ -338,11 +476,17 @@ function initAO () {
   }
 
   aoBlurProgram.aoUniform = gl.getUniformLocation(aoBlurProgram, 'uAO')
+  aoBlurProgram.depthUniform = gl.getUniformLocation(aoBlurProgram, 'uDepth')
   aoBlurProgram.texelUniform = gl.getUniformLocation(aoBlurProgram, 'uTexel')
 
   aoCompositeProgram.sceneUniform = gl.getUniformLocation(aoCompositeProgram, 'uScene')
   aoCompositeProgram.aoUniform = gl.getUniformLocation(aoCompositeProgram, 'uAO')
   aoCompositeProgram.strengthUniform = gl.getUniformLocation(aoCompositeProgram, 'uStrength')
+
+  if (aoFxaaProgram) {
+    aoFxaaProgram.sceneUniform = gl.getUniformLocation(aoFxaaProgram, 'uScene')
+    aoFxaaProgram.resolutionUniform = gl.getUniformLocation(aoFxaaProgram, 'uResolution')
+  }
 
   initAOKernelAndNoise()
   initAOQuad()
@@ -380,7 +524,7 @@ function beginAOScenePass () {
   }
   if (!aoReady) return false
 
-  gl.bindFramebuffer(gl.FRAMEBUFFER, aoSceneFBO)
+  gl.bindFramebuffer(gl.FRAMEBUFFER, aoMsFBO || aoSceneFBO)
   gl.viewport(0, 0, aoWidth, aoHeight)
   return true
 }
@@ -390,6 +534,8 @@ function applyAOAndPresent () {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null)
     return
   }
+
+  resolveAOMultisample()
 
   gl.disable(gl.DEPTH_TEST)
   gl.bindFramebuffer(gl.FRAMEBUFFER, aoFBO)
@@ -424,10 +570,14 @@ function applyAOAndPresent () {
   gl.activeTexture(gl.TEXTURE0)
   gl.bindTexture(gl.TEXTURE_2D, aoTexture)
   gl.uniform1i(aoBlurProgram.aoUniform, 0)
+  gl.activeTexture(gl.TEXTURE1)
+  gl.bindTexture(gl.TEXTURE_2D, aoSceneDepth)
+  gl.uniform1i(aoBlurProgram.depthUniform, 1)
   gl.uniform2f(aoBlurProgram.texelUniform, 1 / aoHalfW, 1 / aoHalfH)
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, aoQuadBuffer.numItems)
 
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+  var doFxaa = !!(useFXAA && aoFxaaProgram && aoPresentFBO && aoPresentColor)
+  gl.bindFramebuffer(gl.FRAMEBUFFER, doFxaa ? aoPresentFBO : null)
   gl.viewport(0, 0, aoWidth, aoHeight)
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
   gl.useProgram(aoCompositeProgram)
@@ -440,6 +590,19 @@ function applyAOAndPresent () {
   gl.uniform1i(aoCompositeProgram.aoUniform, 1)
   gl.uniform1f(aoCompositeProgram.strengthUniform, aoStrength)
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, aoQuadBuffer.numItems)
+
+  if (doFxaa) {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+    gl.viewport(0, 0, aoWidth, aoHeight)
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+    gl.useProgram(aoFxaaProgram)
+    bindAOQuad(aoFxaaProgram)
+    gl.activeTexture(gl.TEXTURE0)
+    gl.bindTexture(gl.TEXTURE_2D, aoPresentColor)
+    gl.uniform1i(aoFxaaProgram.sceneUniform, 0)
+    gl.uniform2f(aoFxaaProgram.resolutionUniform, aoWidth, aoHeight)
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, aoQuadBuffer.numItems)
+  }
 
   gl.enable(gl.DEPTH_TEST)
   gl.activeTexture(gl.TEXTURE0)

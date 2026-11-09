@@ -467,13 +467,14 @@
         
             function createWebGLContext(canvas) {
                 var context = null;
+                var attrs = { alpha: false, depth: true, antialias: true, stencil: false, powerPreference: "high-performance" };
                 try {
-                    context = canvas.getContext("webgl2");
+                    context = canvas.getContext("webgl2", attrs);
                 } catch (e) {
                 }
                 if (!context) {
                     try {
-                        context = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+                        context = canvas.getContext("webgl", attrs) || canvas.getContext("experimental-webgl", attrs);
                     } catch (e) {
                     }
                 }

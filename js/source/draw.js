@@ -49,6 +49,18 @@ function drawScene () {
     if (typeof bindMaterialMaps === 'function') bindMaterialMaps(null)
   }
 
+  // 主场景改渲到 AO FBO（失败则直接画到屏幕）
+  var aoPass = (typeof beginAOScenePass === 'function') && beginAOScenePass()
+  if (aoPass) {
+    gl.clearColor(0, 0, 0, 1)
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+    gl.useProgram(shaderProgram)
+    gl.uniform1i(shaderProgram.samplerUniform, 0)
+    gl.uniform1i(shaderProgram.useTexturesUniform, 1)
+    gl.uniform3f(shaderProgram.ambientColorUniform, 0.17, 0.17, 0.17)
+    if (typeof bindMaterialMaps === 'function') bindMaterialMaps(null)
+  }
+
   bindSceneLightsEyeSpace(mvMatrix)
 
   if (testmode) {
@@ -76,6 +88,10 @@ function drawScene () {
 
   // 测试模式：红色球体标出点光源位置
   drawLightMarker()
+
+  if (aoPass && typeof applyAOAndPresent === 'function') {
+    applyAOAndPresent()
+  }
 
   gl2.useProgram(shaderProgram2)
   gl2.uniform1i(shaderProgram2.samplerUniform, 0)

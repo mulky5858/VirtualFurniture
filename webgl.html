@@ -153,6 +153,7 @@
         <script type="text/javascript" src="js/source/drawSceneOnTVScreen.js"></script>
         <script type="text/javascript" src="js/source/drawroom.js"></script>
         <script type="text/javascript" src="js/source/shadow.js"></script>
+        <script type="text/javascript" src="js/source/ao.js"></script>
         <script type="text/javascript" src="js/source/lights.js"></script>
         <script type="text/javascript" src="js/source/draw.js"></script>
         <script type="text/javascript" src="js/source/drawthings.js"></script>
@@ -536,6 +537,7 @@
                 shaderProgram2 = perVertexProgram2;
                 // 选择光照系统
                 initShadowMap();
+                initAO();
                         
                 gl.clearColor(0.0, 0.0, 0.0, 1.0);
                 gl.enable(gl.DEPTH_TEST);

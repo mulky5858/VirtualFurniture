@@ -366,7 +366,17 @@ function initPostProcess () {
 function postEffectsEnabled () {
   var aoOn = typeof useAO !== 'undefined' && useAO
   var contactOn = typeof useContactShadow !== 'undefined' && useContactShadow
-  return !!(aoOn || contactOn)
+  var aaOn = (typeof useFXAA !== 'undefined' && useFXAA) ||
+    (typeof useMSAA !== 'undefined' && useMSAA)
+  return !!(aoOn || contactOn || aaOn)
+}
+
+function rebuildPostBuffers () {
+  if (!postSupported || !gl) return
+  postWidth = 0
+  postHeight = 0
+  postReady = false
+  resizePostBuffers()
 }
 
 function beginPostScenePass (viewMatrix) {

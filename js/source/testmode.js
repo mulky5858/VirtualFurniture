@@ -12,11 +12,13 @@ var lightMarkerTexture = null
 
 function testmodeonload () {
   testmode = 1
+  if (typeof updateDebugPanelVisibility === 'function') updateDebugPanelVisibility()
 }
 function testmodeclose () {
   testmode = 0
   CharacterReset()
   testoutput = '碰撞体积开启。'
+  if (typeof updateDebugPanelVisibility === 'function') updateDebugPanelVisibility()
 }
 
 function initLightMarker () {

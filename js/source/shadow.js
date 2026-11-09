@@ -7,7 +7,7 @@ var shadowReady = false
 var lightViewMatrix = mat4.create()
 var lightProjMatrix = mat4.create()
 var invCameraView = mat4.create()
-var shadowBias = 0.0025
+var shadowBias = 0.0045
 var shadowNear = 0.08
 var shadowFar = 16
 

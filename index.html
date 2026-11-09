@@ -12,7 +12,7 @@
       var canvas = document.createElement("canvas");
       var gl = null;
       try {
-        gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+        gl = canvas.getContext("webgl2") || canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
       } catch (e) {
       }
 
@@ -33,7 +33,8 @@
       }
 
       if (gl) {
-        document.getElementById("BrowserVersion").textContent += "（支持 WebGL）";
+        var isWebGL2 = (typeof WebGL2RenderingContext !== "undefined" && gl instanceof WebGL2RenderingContext);
+        document.getElementById("BrowserVersion").textContent += isWebGL2 ? "（支持 WebGL2）" : "（支持 WebGL）";
       } else {
         document.getElementById("BrowserVersion").textContent =
           (document.getElementById("BrowserVersion").textContent.indexOf("浏览器版本") === 0

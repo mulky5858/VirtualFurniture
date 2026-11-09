@@ -408,6 +408,9 @@
         <script id="shadow-depth-fs" type="x-shader/x-fragment">
             precision mediump float;
             varying float vLinearDepth;
+            // 引用以保留 VS 中对应 attribute，避免 WebGL2 链接时优化掉
+            varying vec2 vTextureCoord;
+            varying vec3 vTransformedNormal;
 
             vec4 packDepth(float depth) {
                 const vec4 bitShift = vec4(1.0, 255.0, 255.0 * 255.0, 255.0 * 255.0 * 255.0);
@@ -418,7 +421,8 @@
             }
 
             void main(void) {
-                gl_FragColor = packDepth(clamp(vLinearDepth, 0.0, 1.0));
+                float keep = vTextureCoord.x * 0.0 + vTransformedNormal.x * 0.0;
+                gl_FragColor = packDepth(clamp(vLinearDepth + keep, 0.0, 1.0));
             }
         </script>
 
@@ -458,27 +462,38 @@
             var gl;
             var gl2;
         
-            function initGL(canvas) {
+            function createWebGLContext(canvas) {
+                var context = null;
                 try {
-                    gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-                    gl.viewportWidth = canvas.width;
-                    gl.viewportHeight = canvas.height;
+                    context = canvas.getContext("webgl2");
                 } catch (e) {
                 }
+                if (!context) {
+                    try {
+                        context = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+                    } catch (e) {
+                    }
+                }
+                if (context) {
+                    context.isWebGL2 = (typeof WebGL2RenderingContext !== "undefined" &&
+                        context instanceof WebGL2RenderingContext);
+                    context.viewportWidth = canvas.width;
+                    context.viewportHeight = canvas.height;
+                }
+                return context;
+            }
+
+            function initGL(canvas) {
+                gl = createWebGLContext(canvas);
                 if (!gl) {
-                    alert("无法加载webGL，请检查你的浏览器是否支持webGL。");
+                    alert("无法加载 WebGL，请检查你的浏览器是否支持 WebGL2 / WebGL。");
                 }
             }
                 
             function initGL2(canvas) {
-                try {
-                    gl2 = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-                    gl2.viewportWidth = canvas.width;
-                    gl2.viewportHeight = canvas.height;
-                } catch (e) {
-                }
+                gl2 = createWebGLContext(canvas);
                 if (!gl2) {
-                    alert("无法加载webGL，请检查你的浏览器是否支持webGL。");
+                    alert("无法加载 WebGL，请检查你的浏览器是否支持 WebGL2 / WebGL。");
                 }
             }
     

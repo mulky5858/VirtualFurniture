@@ -1,3 +1,36 @@
+function isWebGL2Context (ngl) {
+  return !!(ngl && (ngl.isWebGL2 ||
+    (typeof WebGL2RenderingContext !== 'undefined' && ngl instanceof WebGL2RenderingContext)))
+}
+
+// 将页面内 GLSL ES 1.0 源码适配为 WebGL2 的 GLSL ES 3.00
+function adaptShaderSource (ngl, source, isFragment) {
+  if (!isWebGL2Context(ngl)) {
+    return source
+  }
+
+  source = source.replace(/^\s*#extension\s+GL_OES_standard_derivatives\s*:\s*enable\s*;?\s*/m, '')
+  source = source.replace(/\btexture2D\s*\(/g, 'texture(')
+  source = source.replace(/\btextureCube\s*\(/g, 'texture(')
+
+  if (isFragment) {
+    source = source.replace(/\bvarying\b/g, 'in')
+    source = source.replace(/\bgl_FragColor\b/g, 'fragColor')
+    if (source.indexOf('out vec4 fragColor') === -1) {
+      if (/precision\s+\w+\s+float\s*;/.test(source)) {
+        source = source.replace(/(precision\s+\w+\s+float\s*;)/, '$1\nout vec4 fragColor;')
+      } else {
+        source = 'out vec4 fragColor;\n' + source
+      }
+    }
+  } else {
+    source = source.replace(/\battribute\b/g, 'in')
+    source = source.replace(/\bvarying\b/g, 'out')
+  }
+
+  return '#version 300 es\n' + source
+}
+
 function getShader (ngl, id) {
   var shaderScript = document.getElementById(id)
   if (!shaderScript) {
@@ -14,15 +47,17 @@ function getShader (ngl, id) {
   }
 
   var shader
+  var isFragment = false
   if (shaderScript.type == 'x-shader/x-fragment') {
     shader = ngl.createShader(ngl.FRAGMENT_SHADER)
+    isFragment = true
   } else if (shaderScript.type == 'x-shader/x-vertex') {
     shader = ngl.createShader(ngl.VERTEX_SHADER)
   } else {
     return null
   }
 
-  ngl.shaderSource(shader, str)
+  ngl.shaderSource(shader, adaptShaderSource(ngl, str, isFragment))
   ngl.compileShader(shader)
 
   if (!ngl.getShaderParameter(shader, ngl.COMPILE_STATUS)) {
@@ -33,6 +68,12 @@ function getShader (ngl, id) {
   return shader
 }
 
+function enableAttrib (ngl, location) {
+  if (location >= 0) {
+    ngl.enableVertexAttribArray(location)
+  }
+}
+
 function createProgram (ngl, fragmentShaderID, vertexShaderID) {
   var fragmentShader = getShader(ngl, fragmentShaderID)
   var vertexShader = getShader(ngl, vertexShaderID)
@@ -40,6 +81,9 @@ function createProgram (ngl, fragmentShaderID, vertexShaderID) {
   var program = ngl.createProgram()
   ngl.attachShader(program, vertexShader)
   ngl.attachShader(program, fragmentShader)
+  ngl.bindAttribLocation(program, 0, 'aVertexPosition')
+  ngl.bindAttribLocation(program, 1, 'aVertexNormal')
+  ngl.bindAttribLocation(program, 2, 'aTextureCoord')
   ngl.linkProgram(program)
 
   if (!ngl.getProgramParameter(program, ngl.LINK_STATUS)) {
@@ -47,13 +91,13 @@ function createProgram (ngl, fragmentShaderID, vertexShaderID) {
   }
 
   program.vertexPositionAttribute = ngl.getAttribLocation(program, 'aVertexPosition')
-  ngl.enableVertexAttribArray(program.vertexPositionAttribute)
+  enableAttrib(ngl, program.vertexPositionAttribute)
 
   program.vertexNormalAttribute = ngl.getAttribLocation(program, 'aVertexNormal')
-  ngl.enableVertexAttribArray(program.vertexNormalAttribute)
+  enableAttrib(ngl, program.vertexNormalAttribute)
 
   program.textureCoordAttribute = ngl.getAttribLocation(program, 'aTextureCoord')
-  ngl.enableVertexAttribArray(program.textureCoordAttribute)
+  enableAttrib(ngl, program.textureCoordAttribute)
 
   program.pMatrixUniform = ngl.getUniformLocation(program, 'uPMatrix')
   program.mvMatrixUniform = ngl.getUniformLocation(program, 'uMVMatrix')
@@ -91,6 +135,7 @@ var perFragmentProgram
 
 var perVertexProgram1
 var perFragmentProgram2
+var perVertexProgram2
 
 function attachShadowUniforms (ngl, program) {
   program.invCameraViewUniform = ngl.getUniformLocation(program, 'uInvCameraView')
@@ -103,8 +148,10 @@ function attachShadowUniforms (ngl, program) {
 }
 
 function initShaders (ngl) {
-  // 法线贴图 cotangent frame 依赖屏幕空间导数
-  ngl.getExtension('OES_standard_derivatives')
+  // WebGL1 法线贴图 cotangent frame 依赖该扩展；WebGL2 为核心功能
+  if (!isWebGL2Context(ngl)) {
+    ngl.getExtension('OES_standard_derivatives')
+  }
   // perVertexProgram = createProgram(ngl,"per-vertex-lighting-fs", "per-vertex-lighting-vs")
   perFragmentProgram = createProgram(ngl, 'per-fragment-lighting-fs', 'per-fragment-lighting-vs')
   attachShadowUniforms(ngl, perFragmentProgram)

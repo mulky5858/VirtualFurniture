@@ -13,8 +13,9 @@ function handleLoadedTexture (texture) {
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]))
     }
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-    // WebGL1：仅 POT 纹理可安全用 mipmap；NPOT 用 LINEAR，避免采样变黑
-    var canMip = hasImage && isPowerOfTwo(texture.image.width) && isPowerOfTwo(texture.image.height)
+    // WebGL2 支持 NPOT mipmap；WebGL1 仅 POT 可安全用 mipmap
+    var canMip = hasImage && (isWebGL2Context(gl) ||
+      (isPowerOfTwo(texture.image.width) && isPowerOfTwo(texture.image.height)))
     if (canMip) {
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
       gl.generateMipmap(gl.TEXTURE_2D)
@@ -47,7 +48,17 @@ function handleLoadedTexture2 (texture) {
       gl2.texImage2D(gl2.TEXTURE_2D, 0, gl2.RGBA, 1, 1, 0, gl2.RGBA, gl2.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]))
     }
     gl2.texParameteri(gl2.TEXTURE_2D, gl2.TEXTURE_MAG_FILTER, gl2.LINEAR)
-    gl2.texParameteri(gl2.TEXTURE_2D, gl2.TEXTURE_MIN_FILTER, gl2.LINEAR)
+    var hasImage = texture.image && texture.image.width > 0 && texture.image.height > 0
+    var canMip = hasImage && (isWebGL2Context(gl2) ||
+      (isPowerOfTwo(texture.image.width) && isPowerOfTwo(texture.image.height)))
+    if (canMip) {
+      gl2.texParameteri(gl2.TEXTURE_2D, gl2.TEXTURE_MIN_FILTER, gl2.LINEAR_MIPMAP_LINEAR)
+      gl2.generateMipmap(gl2.TEXTURE_2D)
+    } else {
+      gl2.texParameteri(gl2.TEXTURE_2D, gl2.TEXTURE_MIN_FILTER, gl2.LINEAR)
+      gl2.texParameteri(gl2.TEXTURE_2D, gl2.TEXTURE_WRAP_S, gl2.CLAMP_TO_EDGE)
+      gl2.texParameteri(gl2.TEXTURE_2D, gl2.TEXTURE_WRAP_T, gl2.CLAMP_TO_EDGE)
+    }
     gl2.bindTexture(gl2.TEXTURE_2D, null)
   } catch (e) {
     try {

@@ -7,7 +7,8 @@ var shadowReady = false
 var lightViewMatrix = mat4.create()
 var lightProjMatrix = mat4.create()
 var invCameraView = mat4.create()
-var shadowBias = 0.002
+// 归一化深度 bias；过大（×shadowFar）会让脚底/柜底阴影脱开
+var shadowBias = 0.00025
 var shadowNear = 0.08
 var shadowFar = 16
 
@@ -104,8 +105,8 @@ function drawShadowMap (cameraView) {
   gl.bindFramebuffer(gl.FRAMEBUFFER, shadowFramebuffer)
   gl.viewport(0, 0, shadowMapSize, shadowMapSize)
   gl.enable(gl.POLYGON_OFFSET_FILL)
-  // 过大的 offset 会让小物体（茶壶等）投影与本体脱开
-  gl.polygonOffset(1.0, 1.0)
+  // 极轻偏移即可；再大沙发腿/柜脚会与投影脱开
+  gl.polygonOffset(0.2, 0.4)
 
   var eye = [pointlight[0], pointlight[1], pointlight[2]]
   mat4.set(lightProjMatrix, pMatrix)

@@ -288,7 +288,8 @@
                 float linDepth = clamp(current / uShadowFar, 0.0, 1.0);
                 vec3 dir = normalize(L);
                 float slope = tan(acos(clamp(nDotL, 0.0, 1.0)));
-                float bias = clamp(uShadowBias * (1.0 + slope * 0.75), uShadowBias, uShadowBias * 2.2);
+                // 斜率补偿别拉太高，否则地板接触点会出现亮缝（peter-panning）
+                float bias = clamp(uShadowBias * (1.0 + slope * 0.35), uShadowBias, uShadowBias * 1.35);
 
                 vec3 absL = abs(L);
                 vec3 offsetA;

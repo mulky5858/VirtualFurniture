@@ -156,6 +156,7 @@
         <script type="text/javascript" src="js/source/postprocess.js"></script>
         <script type="text/javascript" src="js/source/ao.js"></script>
         <script type="text/javascript" src="js/source/contactShadow.js"></script>
+        <script type="text/javascript" src="js/source/bloom.js"></script>
         <script type="text/javascript" src="js/source/debugPanel.js"></script>
         <script type="text/javascript" src="js/source/lights.js"></script>
         <script type="text/javascript" src="js/source/draw.js"></script>
@@ -1139,6 +1140,14 @@
                 <label class="debugPanelRow">
                     <input id="debugToggleAA" type="checkbox" checked onchange="onDebugToggleAA(this.checked)">
                     <span>抗锯齿</span>
+                </label>
+                <label class="debugPanelRow">
+                    <input id="debugToggleTone" type="checkbox" checked onchange="onDebugToggleTone(this.checked)">
+                    <span>色调映射</span>
+                </label>
+                <label class="debugPanelRow">
+                    <input id="debugToggleBloom" type="checkbox" checked onchange="onDebugToggleBloom(this.checked)">
+                    <span>Bloom</span>
                 </label>
             </div>
         </div>

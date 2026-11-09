@@ -12,6 +12,8 @@ function syncDebugPanelFromFlags () {
   var ao = document.getElementById('debugToggleAO')
   var contact = document.getElementById('debugToggleContact')
   var aa = document.getElementById('debugToggleAA')
+  var tone = document.getElementById('debugToggleTone')
+  var bloom = document.getElementById('debugToggleBloom')
   if (ao && typeof useAO !== 'undefined') ao.checked = !!useAO
   if (contact && typeof useContactShadow !== 'undefined') contact.checked = !!useContactShadow
   if (aa) {
@@ -19,6 +21,8 @@ function syncDebugPanelFromFlags () {
     var msaaOn = typeof useMSAA === 'undefined' || !!useMSAA
     aa.checked = !!(fxaaOn || msaaOn)
   }
+  if (tone && typeof useToneMapping !== 'undefined') tone.checked = !!useToneMapping
+  if (bloom && typeof useBloom !== 'undefined') bloom.checked = !!useBloom
 }
 
 function updateDebugPanelVisibility () {
@@ -45,6 +49,14 @@ function onDebugToggleContact (checked) {
 
 function onDebugToggleAA (checked) {
   setPostAAEnabled(checked)
+}
+
+function onDebugToggleTone (checked) {
+  if (typeof useToneMapping !== 'undefined') useToneMapping = checked ? 1 : 0
+}
+
+function onDebugToggleBloom (checked) {
+  if (typeof useBloom !== 'undefined') useBloom = checked ? 1 : 0
 }
 
 function toggleDebugPanel () {

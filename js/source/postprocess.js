@@ -1,6 +1,8 @@
-// 后处理公共框架：离屏场景、MSAA、合成、FXAA
+// 后处理公共框架：离屏场景、MSAA、合成、FXAA、色调映射
 var useFXAA = 1
 var useMSAA = 1
+var useToneMapping = 1
+var postExposure = 1.12
 var postReady = false
 var postSupported = false
 var postNear = 0.1
@@ -15,6 +17,8 @@ var postMsDepthRB = null
 var postMsSamples = 0
 var postPresentFBO = null
 var postPresentColor = null
+var postComposeFBO = null
+var postComposeColor = null
 var postQuadBuffer = null
 var postQuadTexBuffer = null
 var postWidth = 0
@@ -22,6 +26,7 @@ var postHeight = 0
 var postViewMatrix = null
 
 var postCompositeProgram = null
+var postFinalProgram = null
 var postFxaaProgram = null
 
 var POST_VS = [
@@ -55,6 +60,36 @@ var POST_COMPOSITE_FS = [
   '  }',
   '  color.rgb *= ao * contact;',
   '  gl_FragColor = color;',
+  '}'
+].join('\n')
+
+var POST_FINAL_FS = [
+  'precision mediump float;',
+  'varying vec2 vTextureCoord;',
+  'uniform sampler2D uScene;',
+  'uniform sampler2D uBloom;',
+  'uniform float uBloomStrength;',
+  'uniform bool uUseBloom;',
+  'uniform bool uUseToneMap;',
+  'uniform float uExposure;',
+  'vec3 acesToneMap(vec3 x) {',
+  '  float a = 2.51;',
+  '  float b = 0.03;',
+  '  float c = 2.43;',
+  '  float d = 0.59;',
+  '  float e = 0.14;',
+  '  return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);',
+  '}',
+  'void main(void) {',
+  '  vec3 color = texture2D(uScene, vTextureCoord).rgb;',
+  '  if (uUseBloom) {',
+  '    color += texture2D(uBloom, vTextureCoord).rgb * uBloomStrength;',
+  '  }',
+  '  if (uUseToneMap) {',
+  '    color *= uExposure;',
+  '    color = acesToneMap(color);',
+  '  }',
+  '  gl_FragColor = vec4(color, 1.0);',
   '}'
 ].join('\n')
 
@@ -288,6 +323,7 @@ function resizePostBuffers () {
   if (w === postWidth && h === postHeight && postReady) {
     if (typeof resizeAOTargets === 'function') resizeAOTargets()
     if (typeof resizeContactShadowTargets === 'function') resizeContactShadowTargets()
+    if (typeof resizeBloomTargets === 'function') resizeBloomTargets()
     return
   }
 
@@ -297,8 +333,10 @@ function resizePostBuffers () {
   destroyPostTexture(postSceneColor)
   destroyPostTexture(postSceneDepth)
   destroyPostTexture(postPresentColor)
+  destroyPostTexture(postComposeColor)
   destroyPostFBO(postSceneFBO)
   destroyPostFBO(postPresentFBO)
+  destroyPostFBO(postComposeFBO)
   destroyPostMultisampleTargets()
 
   postSceneColor = createPostColorTarget(postWidth, postHeight, false)
@@ -315,6 +353,11 @@ function resizePostBuffers () {
 
   createPostMultisampleTargets(postWidth, postHeight)
 
+  postComposeColor = createPostColorTarget(postWidth, postHeight, false)
+  postComposeFBO = gl.createFramebuffer()
+  gl.bindFramebuffer(gl.FRAMEBUFFER, postComposeFBO)
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, postComposeColor, 0)
+
   postPresentColor = createPostColorTarget(postWidth, postHeight, false)
   postPresentFBO = gl.createFramebuffer()
   gl.bindFramebuffer(gl.FRAMEBUFFER, postPresentFBO)
@@ -325,6 +368,7 @@ function resizePostBuffers () {
 
   if (typeof resizeAOTargets === 'function') resizeAOTargets()
   if (typeof resizeContactShadowTargets === 'function') resizeContactShadowTargets()
+  if (typeof resizeBloomTargets === 'function') resizeBloomTargets()
 }
 
 function initPostProcess () {
@@ -340,8 +384,9 @@ function initPostProcess () {
   }
 
   postCompositeProgram = createPostProgram(POST_VS, POST_COMPOSITE_FS)
+  postFinalProgram = createPostProgram(POST_VS, POST_FINAL_FS)
   postFxaaProgram = createPostProgram(POST_VS, POST_FXAA_FS)
-  if (!postCompositeProgram) return
+  if (!postCompositeProgram || !postFinalProgram) return
 
   postCompositeProgram.sceneUniform = gl.getUniformLocation(postCompositeProgram, 'uScene')
   postCompositeProgram.aoUniform = gl.getUniformLocation(postCompositeProgram, 'uAO')
@@ -349,6 +394,13 @@ function initPostProcess () {
   postCompositeProgram.strengthUniform = gl.getUniformLocation(postCompositeProgram, 'uStrength')
   postCompositeProgram.contactStrengthUniform = gl.getUniformLocation(postCompositeProgram, 'uContactStrength')
   postCompositeProgram.useContactUniform = gl.getUniformLocation(postCompositeProgram, 'uUseContact')
+
+  postFinalProgram.sceneUniform = gl.getUniformLocation(postFinalProgram, 'uScene')
+  postFinalProgram.bloomUniform = gl.getUniformLocation(postFinalProgram, 'uBloom')
+  postFinalProgram.bloomStrengthUniform = gl.getUniformLocation(postFinalProgram, 'uBloomStrength')
+  postFinalProgram.useBloomUniform = gl.getUniformLocation(postFinalProgram, 'uUseBloom')
+  postFinalProgram.useToneMapUniform = gl.getUniformLocation(postFinalProgram, 'uUseToneMap')
+  postFinalProgram.exposureUniform = gl.getUniformLocation(postFinalProgram, 'uExposure')
 
   if (postFxaaProgram) {
     postFxaaProgram.sceneUniform = gl.getUniformLocation(postFxaaProgram, 'uScene')
@@ -361,6 +413,7 @@ function initPostProcess () {
 
   if (typeof initAO === 'function') initAO()
   if (typeof initContactShadow === 'function') initContactShadow()
+  if (typeof initBloom === 'function') initBloom()
 }
 
 function postEffectsEnabled () {
@@ -368,7 +421,9 @@ function postEffectsEnabled () {
   var contactOn = typeof useContactShadow !== 'undefined' && useContactShadow
   var aaOn = (typeof useFXAA !== 'undefined' && useFXAA) ||
     (typeof useMSAA !== 'undefined' && useMSAA)
-  return !!(aoOn || contactOn || aaOn)
+  var toneOn = typeof useToneMapping !== 'undefined' && useToneMapping
+  var bloomOn = typeof useBloom !== 'undefined' && useBloom
+  return !!(aoOn || contactOn || aaOn || toneOn || bloomOn)
 }
 
 function rebuildPostBuffers () {
@@ -425,8 +480,8 @@ function applyPostAndPresent () {
   var aoStrengthValue = (typeof useAO !== 'undefined' && useAO && typeof aoStrength === 'number') ? aoStrength : 0.0
   var contactStrengthValue = (typeof contactStrength === 'number') ? contactStrength : 0.0
 
-  var doFxaa = !!(useFXAA && postFxaaProgram && postPresentFBO && postPresentColor)
-  gl.bindFramebuffer(gl.FRAMEBUFFER, doFxaa ? postPresentFBO : null)
+  // 1) AO / 接触阴影合成到中间缓冲
+  gl.bindFramebuffer(gl.FRAMEBUFFER, postComposeFBO)
   gl.viewport(0, 0, postWidth, postHeight)
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
   gl.useProgram(postCompositeProgram)
@@ -445,6 +500,34 @@ function applyPostAndPresent () {
   gl.uniform1f(postCompositeProgram.contactStrengthUniform, contactStrengthValue)
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, postQuadBuffer.numItems)
 
+  // 2) Bloom
+  var bloomTex = null
+  var bloomOn = !!(typeof useBloom !== 'undefined' && useBloom)
+  if (bloomOn && typeof drawBloomPass === 'function') {
+    bloomTex = drawBloomPass(postComposeColor)
+  }
+  if (!bloomTex) bloomOn = false
+
+  // 3) Bloom 叠加 + 色调映射
+  var doFxaa = !!(useFXAA && postFxaaProgram && postPresentFBO && postPresentColor)
+  gl.bindFramebuffer(gl.FRAMEBUFFER, doFxaa ? postPresentFBO : null)
+  gl.viewport(0, 0, postWidth, postHeight)
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+  gl.useProgram(postFinalProgram)
+  bindPostQuad(postFinalProgram)
+  gl.activeTexture(gl.TEXTURE0)
+  gl.bindTexture(gl.TEXTURE_2D, postComposeColor)
+  gl.uniform1i(postFinalProgram.sceneUniform, 0)
+  gl.activeTexture(gl.TEXTURE1)
+  gl.bindTexture(gl.TEXTURE_2D, bloomOn && bloomTex ? bloomTex : postComposeColor)
+  gl.uniform1i(postFinalProgram.bloomUniform, 1)
+  gl.uniform1i(postFinalProgram.useBloomUniform, bloomOn ? 1 : 0)
+  gl.uniform1f(postFinalProgram.bloomStrengthUniform, typeof bloomStrength === 'number' ? bloomStrength : 0.0)
+  gl.uniform1i(postFinalProgram.useToneMapUniform, useToneMapping ? 1 : 0)
+  gl.uniform1f(postFinalProgram.exposureUniform, postExposure)
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, postQuadBuffer.numItems)
+
+  // 4) FXAA
   if (doFxaa) {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null)
     gl.viewport(0, 0, postWidth, postHeight)

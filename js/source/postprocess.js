@@ -185,8 +185,9 @@ function createPostColorTarget (width, height, nearest) {
 function createPostDepthTexture (width, height) {
   var tex = gl.createTexture()
   gl.bindTexture(gl.TEXTURE_2D, tex)
+  // WebGL2：深度+模板，供选中描边；采样时仍可读深度
   if (isWebGL2Context(gl)) {
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT24, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null)
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH24_STENCIL8, width, height, 0, gl.DEPTH_STENCIL, gl.UNSIGNED_INT_24_8, null)
   } else {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, width, height, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_SHORT, null)
   }
@@ -237,12 +238,12 @@ function createPostMultisampleTargets (width, height) {
 
   postMsDepthRB = gl.createRenderbuffer()
   gl.bindRenderbuffer(gl.RENDERBUFFER, postMsDepthRB)
-  gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, gl.DEPTH_COMPONENT24, width, height)
+  gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, gl.DEPTH24_STENCIL8, width, height)
 
   postMsFBO = gl.createFramebuffer()
   gl.bindFramebuffer(gl.FRAMEBUFFER, postMsFBO)
   gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, postMsColorRB)
-  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, postMsDepthRB)
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, postMsDepthRB)
 
   var ok = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE
   gl.bindFramebuffer(gl.FRAMEBUFFER, null)
@@ -344,7 +345,11 @@ function resizePostBuffers () {
   postSceneFBO = gl.createFramebuffer()
   gl.bindFramebuffer(gl.FRAMEBUFFER, postSceneFBO)
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, postSceneColor, 0)
-  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, postSceneDepth, 0)
+  if (isWebGL2Context(gl)) {
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.TEXTURE_2D, postSceneDepth, 0)
+  } else {
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, postSceneDepth, 0)
+  }
   if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
     postReady = false
     gl.bindFramebuffer(gl.FRAMEBUFFER, null)

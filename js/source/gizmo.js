@@ -202,17 +202,11 @@ function pickGizmoAxis (nx, ny) {
 }
 
 function getMouseWorldRay (event) {
-  var ndc = getCanvasMouseNDC(event)
-  var aspect = gl.viewportWidth / gl.viewportHeight
-  var tanHalf = Math.tan(degToRad(45 / 2))
-  var dir = [ndc[0] * aspect * tanHalf, ndc[1] * tanHalf, -1]
-  dir = rotateVecX(dir, degToRad(pitch))
-  dir = rotateVecY(dir, degToRad(yaw))
-  var len = Math.sqrt(dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2]) || 1
-  return {
-    origin: [xPos, yPos, zPos],
-    dir: [dir[0] / len, dir[1] / len, dir[2] / len]
+  if (typeof isViewPointerLocked === 'function' && isViewPointerLocked()) {
+    return getWorldRayFromScreen01(0.5, 0.5)
   }
+  var n = getCanvasMouseNorm(event)
+  return getWorldRayFromScreen01(n[0], n[1])
 }
 
 function hitAxisDragPlane (event, axis) {

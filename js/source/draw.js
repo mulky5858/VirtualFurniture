@@ -19,7 +19,7 @@ function drawScene () {
   }
 
   gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight)
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
 
   mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix)
 
@@ -55,7 +55,7 @@ function drawScene () {
     : ((typeof beginAOScenePass === 'function') && beginAOScenePass(cameraView))
   if (postPass) {
     gl.clearColor(0, 0, 0, 1)
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
     gl.useProgram(shaderProgram)
     gl.uniform1i(shaderProgram.samplerUniform, 0)
     gl.uniform1i(shaderProgram.useTexturesUniform, 1)
@@ -84,6 +84,9 @@ function drawScene () {
   for (var i = 0; i <= NumberOfObjects - 1; i++) {
     draw(i)
   }
+
+  // 选中物体描边
+  if (typeof drawSelectionOutline === 'function') drawSelectionOutline()
 
   // 选中物体时绘制 XYZ 位移箭头
   drawGizmo()

@@ -526,7 +526,7 @@
         
             function createWebGLContext(canvas) {
                 var context = null;
-                var attrs = { alpha: false, depth: true, antialias: true, stencil: false, powerPreference: "high-performance" };
+                var attrs = { alpha: false, depth: true, antialias: true, stencil: true, powerPreference: "high-performance" };
                 try {
                     context = canvas.getContext("webgl2", attrs);
                 } catch (e) {
